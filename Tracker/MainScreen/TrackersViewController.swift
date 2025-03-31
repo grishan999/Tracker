@@ -21,7 +21,6 @@ final class TrackersViewController: UIViewController {
         
         view.backgroundColor = .systemBackground
         setupUI()
-        
     }
     
     private func setupUI() {
