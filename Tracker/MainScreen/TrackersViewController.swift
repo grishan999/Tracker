@@ -16,6 +16,12 @@ final class TrackersViewController: UIViewController {
     private let starImage = UIImageView()
     private let questionLabel = UILabel()
     
+    
+    private var categories: [TrackerCategory] = []
+    private var completedTrackers: [TrackerRecord] = []
+    
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -49,9 +55,12 @@ final class TrackersViewController: UIViewController {
     private func setupDatePicker() {
         datePicker.preferredDatePickerStyle = .compact
         datePicker.datePickerMode = .date
-        datePicker.locale = Locale(identifier: "ru_RU")
+        datePicker.locale = Locale(identifier: "ru_RU") 
+        datePicker.calendar = Calendar.current
+        datePicker.timeZone = TimeZone.current
         
         datePicker.backgroundColor = .lightGray.withAlphaComponent(0.3)
+        datePicker.tintColor = UIColor(named: "CustomBlack")
         
         datePicker.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(datePicker)
@@ -60,10 +69,6 @@ final class TrackersViewController: UIViewController {
             datePicker.centerYAnchor.constraint(equalTo: addTrackerButton.centerYAnchor),
             datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
-        
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ru_RU")
-        formatter.dateFormat = "dd.MM.yy"
     }
     
     private func setupHeaderLabel() {
@@ -153,5 +158,31 @@ final class TrackersViewController: UIViewController {
     @objc func addTrackerButtonTapped() {
         
     }
+    
+    private func completeTracker(with id: UUID, on date: Date) {
+          let record = TrackerRecord(trackerId: id, date: date)
+          completedTrackers.append(record)
+      }
+      
+      private func undoCompleteTracker(with id: UUID, on date: Date) {
+          completedTrackers.removeAll { $0.trackerId == id && Calendar.current.isDate($0.date, inSameDayAs: date) }
+      }
+      
+      private func addNewTracker(_ tracker: Tracker, to categoryTitle: String) {
+          var newCategories = categories
+          
+          if let index = newCategories.firstIndex(where: { $0.title == categoryTitle }) {
+
+              let existingCategory = newCategories[index]
+              let updatedTrackers = existingCategory.trackers + [tracker]
+              newCategories[index] = TrackerCategory(title: existingCategory.title, trackers: updatedTrackers)
+          } else {
+ 
+              let newCategory = TrackerCategory(title: categoryTitle, trackers: [tracker])
+              newCategories.append(newCategory)
+          }
+          
+          categories = newCategories
+      }
     
 }
