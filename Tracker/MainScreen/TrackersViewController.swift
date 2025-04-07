@@ -7,11 +7,8 @@
 
 import UIKit
 
-
-
 final class TrackersViewController: UIViewController {
     
-    private let addTrackerButton = UIButton()
     private let datePicker = UIDatePicker()
     private let headerLabel = UILabel()
     private let searchBar = UISearchBar()
@@ -63,8 +60,7 @@ final class TrackersViewController: UIViewController {
     }()
     
     private func setupUI() {
-        setupAddTrackerButton()
-        setupDatePicker()
+        setupNavBarItems()
         setupHeaderLabel()
         setupSearchBar()
         setupStarImage()
@@ -91,39 +87,26 @@ final class TrackersViewController: UIViewController {
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
+
     
-    private func setupAddTrackerButton() {
-        addTrackerButton.setImage(UIImage(named: "AddTracker"), for: .normal)
-        addTrackerButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(addTrackerButton)
-        
-        NSLayoutConstraint.activate([
-            addTrackerButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 45),
-            addTrackerButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
-            
-            addTrackerButton.widthAnchor.constraint(equalToConstant: 42),
-            addTrackerButton.heightAnchor.constraint(equalToConstant: 42)
-        ])
-    }
-    
-    private func setupDatePicker() {
-        
+    private func setupNavBarItems() {
+
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: UIImage(named: "AddTracker"),
+            style: .plain,
+            target: self,
+            action: #selector(addTrackerButtonTapped)
+        )
+        navigationItem.leftBarButtonItem?.tintColor = UIColor(named: "CustomBlack")
+
+        let datePicker = UIDatePicker()
+        datePicker.tintColor = UIColor(named: "CustomBlack")
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .compact
         datePicker.addTarget(self, action: #selector(datePickerValueChanged(_:)), for: .valueChanged)
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
-        
-        datePicker.backgroundColor = .lightGray.withAlphaComponent(0.3)
-        datePicker.tintColor = UIColor(named: "CustomBlack")
-        
-        datePicker.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(datePicker)
-        
-        NSLayoutConstraint.activate([
-            datePicker.centerYAnchor.constraint(equalTo: addTrackerButton.centerYAnchor),
-            datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
-        ])
     }
+    
     
     private func setupHeaderLabel() {
         headerLabel.text = "Трекеры"
@@ -133,8 +116,8 @@ final class TrackersViewController: UIViewController {
         view.addSubview(headerLabel)
         
         NSLayoutConstraint.activate([
-            headerLabel.topAnchor.constraint(equalTo: addTrackerButton.bottomAnchor, constant: 1),
-            headerLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16)
+            headerLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            headerLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor,constant: 1),
         ])
     }
     
@@ -216,7 +199,9 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc func addTrackerButtonTapped() {
-        
+            let typeCreationVC = TypeCreationViewController()
+            let navController = UINavigationController(rootViewController: typeCreationVC)
+            present(navController, animated: true)
     }
     
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
