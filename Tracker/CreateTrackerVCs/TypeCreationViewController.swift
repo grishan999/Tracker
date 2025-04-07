@@ -75,7 +75,8 @@ final class TypeCreationViewController: UIViewController {
     }
     
     @objc private func addEventButtonTapped() {
-        // Здесь будет переход на экран создания нерегулярного события
-        print("Создание нерегулярного события")
+        let typeCreationVC = EventCreationViewController()
+        let navController = UINavigationController(rootViewController: typeCreationVC)
+        present(navController, animated: true)
     }
 }

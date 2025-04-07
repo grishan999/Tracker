@@ -90,7 +90,6 @@ final class TrackersViewController: UIViewController {
 
     
     private func setupNavBarItems() {
-
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: UIImage(named: "AddTracker"),
             style: .plain,
