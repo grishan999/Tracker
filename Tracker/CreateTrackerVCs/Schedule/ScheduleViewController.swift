@@ -16,6 +16,7 @@ final class ScheduleViewController: UIViewController {
     weak var delegate: ScheduleViewControllerDelegate?
     var selectedDays: Set<Day> = []
     
+    
     private lazy var scheduleTableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = UIColor(named: "CustomBackgroundDay")

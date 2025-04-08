@@ -9,8 +9,8 @@ import UIKit
 
 final class EventCreationViewController: UIViewController {
     
-    private var category: TrackerCategory? = TrackerCategory(title: "Спорт", trackers: [])
-    
+    private var category: TrackerCategory = TrackerCategory(title: "Уборка", trackers: []) 
+    weak var delegate: CreateDelegateProtocol?
     
     private lazy var eventNameTextField: UITextField = {
         let textField = UITextField()
@@ -54,7 +54,7 @@ final class EventCreationViewController: UIViewController {
     }()
     
     private lazy var createButton: UIButton = {
-        let button = UIButton(type: .custom) // Изменили с .system на .custom
+        let button = UIButton(type: .custom)
         button.setTitle("Создать", for: .normal)
         button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
@@ -62,7 +62,7 @@ final class EventCreationViewController: UIViewController {
         button.layer.borderWidth = 1
         button.backgroundColor = UIColor(named: "CustomGray")
         button.layer.borderColor = UIColor(named: "CustomGray")?.cgColor
-        button.addTarget(self, action: #selector(createlButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -81,7 +81,7 @@ final class EventCreationViewController: UIViewController {
         view.backgroundColor = .systemBackground
         
         navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
-        navigationItem.title = "Новое нерегулярное событие"
+        navigationItem.title = "Новое событие"
         
         setupUI()
     }
@@ -90,6 +90,10 @@ final class EventCreationViewController: UIViewController {
         view.addSubview(eventNameTextField)
         view.addSubview(settingsTableView)
         view.addSubview(buttonsStackView)
+        
+        // Начальное состояние кнопки "Создать"
+        createButton.backgroundColor = UIColor(named: "CustomGray")
+        createButton.isEnabled = false
         
         NSLayoutConstraint.activate([
             eventNameTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
@@ -112,15 +116,44 @@ final class EventCreationViewController: UIViewController {
     }
     
     @objc private func textFieldDidChange() {
-        // Логика изменения текста
+        updateCreateButtonState()
     }
     
     @objc private func cancelButtonTapped() {
         self.dismiss(animated: true)
     }
     
-    @objc private func createlButtonTapped() {
-        // Логика создания
+    @objc private func createButtonTapped() {
+        guard let text = eventNameTextField.text, !text.isEmpty
+        
+        else { return }
+        
+        // Создаем событие с моковыми данными
+        let newEvent = Tracker(
+            id: UUID(),
+            title: text,
+            color: "CustomBlue",
+            emoji: "📌",
+            schedule: [] // Расписание не используется
+        )
+        
+        // Добавляем трекер в DataManager
+        DataManager.shared.addTracker(newEvent, toCategoryWithTitle: category.title)
+        dismiss(animated: true)
+        
+        delegate?.didCreateEvent(title: text, category: category, emoji: "📌", color: .blue)
+    }
+    
+    private func updateCreateButtonState() {
+        let isTextValid = !(eventNameTextField.text?.isEmpty ?? true)
+        
+        if isTextValid {
+            createButton.backgroundColor = UIColor(named: "CustomBlack")
+            createButton.isEnabled = true
+        } else {
+            createButton.backgroundColor = UIColor(named: "CustomGray")
+            createButton.isEnabled = false
+        }
     }
 }
 
@@ -135,7 +168,7 @@ extension EventCreationViewController: UITableViewDelegate, UITableViewDataSourc
         
         cell.textLabel?.text = tableViewCells[indexPath.row]
         if indexPath.row == 0 {
-            cell.detailTextLabel?.text = category?.title
+            cell.detailTextLabel?.text = category.title 
         }
         
         cell.detailTextLabel?.textColor = UIColor(named: "CustomGray")
@@ -154,29 +187,4 @@ extension EventCreationViewController: UITableViewDelegate, UITableViewDataSourc
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 75
     }
-    
-    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        let cornerRadius: CGFloat = 16
-        var corners: UIRectCorner = []
-        
-        if indexPath.row == 0 {
-            corners.update(with: .topLeft)
-            corners.update(with: .topRight)
-        }
-        
-        if indexPath.row == tableViewCells.count - 1 {
-            corners.update(with: .bottomLeft)
-            corners.update(with: .bottomRight)
-        }
-        
-        let maskLayer = CAShapeLayer()
-        maskLayer.path = UIBezierPath(
-            roundedRect: cell.bounds,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: cornerRadius, height: cornerRadius)
-        ).cgPath
-        cell.layer.mask = maskLayer
-    }
-
 }
-

@@ -7,15 +7,17 @@
 
 import UIKit
 
-final class HabitCreationViewController: UIViewController  {
+final class HabitCreationViewController: UIViewController {
     
-    private var category: TrackerCategory? = TrackerCategory(title: "Спорт", trackers: [])
-    private var schedule: Set<Day> = []
+    private var category: TrackerCategory = TrackerCategory(title: "Уборка", trackers: [])
+    private var schedule: Set<Day> = [] 
+    
+    weak var delegate: CreateDelegateProtocol?
    
     private lazy var habitNameTextField: UITextField = {
         let textField = UITextField()
         textField.backgroundColor = UIColor(named: "CustomBackgroundDay")
-        textField.placeholder = "Введите название трекера"
+        textField.placeholder = "Введите название привычки"
         textField.layer.cornerRadius = 16
         textField.clearButtonMode = .whileEditing
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textField.frame.height))
@@ -54,7 +56,7 @@ final class HabitCreationViewController: UIViewController  {
     }()
     
     private lazy var createButton: UIButton = {
-        let button = UIButton(type: .custom) // Изменили с .system на .custom
+        let button = UIButton(type: .custom)
         button.setTitle("Создать", for: .normal)
         button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
@@ -62,7 +64,7 @@ final class HabitCreationViewController: UIViewController  {
         button.layer.borderWidth = 1
         button.backgroundColor = UIColor(named: "CustomGray")
         button.layer.borderColor = UIColor(named: "CustomGray")?.cgColor
-        button.addTarget(self, action: #selector(createlButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -91,6 +93,10 @@ final class HabitCreationViewController: UIViewController  {
         view.addSubview(settingsTableView)
         view.addSubview(buttonsStackView)
         
+        // Начальное состояние кнопки "Создать"
+        createButton.backgroundColor = UIColor(named: "CustomGray")
+        createButton.isEnabled = false
+        
         NSLayoutConstraint.activate([
             habitNameTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
             habitNameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -112,15 +118,42 @@ final class HabitCreationViewController: UIViewController  {
     }
     
     @objc private func textFieldDidChange() {
-        // Логика изменения текста
+        updateCreateButtonState()
     }
     
     @objc private func cancelButtonTapped() {
         self.dismiss(animated: true)
     }
     
-    @objc private func createlButtonTapped() {
-        // Логика создания
+    @objc private func createButtonTapped() {
+        guard let text = habitNameTextField.text, !text.isEmpty else { return }
+        
+        // Создаем новую привычку
+        let newHabit = Tracker(
+            id: UUID(),
+            title: text,
+            color: "CustomPink", // Моковый цвет (можно сделать рандомный выбор)
+            emoji: "🏃‍♂️", // Моковый emoji
+            schedule: schedule
+        )
+        
+        // Сохраняем трекер в выбранную категорию (по умолчанию "Спорт")
+        DataManager.shared.addTracker(newHabit, toCategoryWithTitle: category.title)
+        delegate?.didCreateHabit(title: text, category: category, emoji: "📌", color: .blue,  schedule: schedule)
+        presentingViewController?.presentingViewController?.dismiss(animated: true)
+    }
+    
+    private func updateCreateButtonState() {
+        let isTextValid = !(habitNameTextField.text?.isEmpty ?? true)
+        let isScheduleSelected = !schedule.isEmpty
+        
+        if isTextValid && isScheduleSelected {
+            createButton.backgroundColor = UIColor(named: "CustomBlack")
+            createButton.isEnabled = true
+        } else {
+            createButton.backgroundColor = UIColor(named: "CustomGray")
+            createButton.isEnabled = false
+        }
     }
 }
 
@@ -135,7 +168,9 @@ extension HabitCreationViewController: UITableViewDelegate, UITableViewDataSourc
         
         cell.textLabel?.text = tableViewCells[indexPath.row]
         if indexPath.row == 0 {
-            cell.detailTextLabel?.text = category?.title 
+            cell.detailTextLabel?.text = category.title
+        } else if indexPath.row == 1 {
+            cell.detailTextLabel?.text = formatScheduleText(days: schedule)
         }
         
         cell.detailTextLabel?.textColor = UIColor(named: "CustomGray")
@@ -179,16 +214,19 @@ extension HabitCreationViewController: UITableViewDelegate, UITableViewDataSourc
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-            tableView.deselectRow(at: indexPath, animated: true)
-            
-            if indexPath.row == 1 {
-                let scheduleVC = ScheduleViewController()
-                scheduleVC.delegate = self
-                scheduleVC.selectedDays = schedule
-                let navController = UINavigationController(rootViewController: scheduleVC)
-                present(navController, animated: true)
-            }
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        if indexPath.row == 0 {
+            // Показываем экран выбора категории (если нужно)
+        } else if indexPath.row == 1 {
+            // Показываем экран выбора расписания
+            let scheduleVC = ScheduleViewController()
+            scheduleVC.delegate = self
+            scheduleVC.selectedDays = schedule
+            let navController = UINavigationController(rootViewController: scheduleVC)
+            present(navController, animated: true)
         }
+    }
 }
 
 extension HabitCreationViewController: ScheduleViewControllerDelegate {
@@ -198,6 +236,7 @@ extension HabitCreationViewController: ScheduleViewControllerDelegate {
         if let cell = settingsTableView.cellForRow(at: IndexPath(row: 1, section: 0)) {
             cell.detailTextLabel?.text = formatScheduleText(days: days)
         }
+        updateCreateButtonState()
     }
     
     private func formatScheduleText(days: Set<Day>) -> String {

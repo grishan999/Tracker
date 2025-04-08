@@ -4,6 +4,10 @@
 //
 //  Created by Ilya Grishanov on 31.03.2025.
 //
+protocol CreateDelegateProtocol: AnyObject {
+    func didCreateHabit(title: String, category: TrackerCategory, emoji: Character, color: UIColor, schedule: Set<Day>)
+    func didCreateEvent(title: String, category: TrackerCategory, emoji: Character, color: UIColor)
+}
 
 import UIKit
 
@@ -23,7 +27,6 @@ final class TrackersViewController: UIViewController {
     
     
     private var categories: [TrackerCategory] = []
-    // private var visibleCategories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
     
     override func viewDidLoad() {
@@ -37,10 +40,12 @@ final class TrackersViewController: UIViewController {
         
     }
     
+    
+    
     private lazy var placeholderView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = true // По умолчанию скрыт
+        view.isHidden = true
         return view
     }()
     
@@ -270,7 +275,7 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
                         trackerID: tracker.id,
                         isCompletedToday: isCompletedToday)
         
-        cell.delegate = self
+//        cell.delegate = self
         
         return cell
     }
@@ -316,31 +321,40 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     }
 }
 
-extension TrackersViewController: TrackersCellDelegate {
-    func updateCount(cell: TrackersCell) {
-        guard let trackerID = cell.trackerID else { return }
-        
-        let isCompletedAtPickedDay = completedTrackers.contains { record in
-            record.trackerId == trackerID && Calendar.current.isDate(record.date, inSameDayAs: datePicker.date)
-        }
-        
-        let today = Date()
-        let isSameOrEarlierDay = Calendar.current.compare(datePicker.date, to: today, toGranularity: .day) != .orderedDescending
-        
-        if isSameOrEarlierDay && !isCompletedAtPickedDay {
-            // Добавляем запись о выполнении
-            let record = TrackerRecord(trackerId: trackerID, date: datePicker.date)
-            completedTrackers.append(record)
-            let daysCount = completedTrackers.filter { $0.trackerId == trackerID }.count
-            cell.updateDays(days: daysCount, isAddition: true)
-        } else if isCompletedAtPickedDay {
-            // Удаляем запись о выполнении
-            completedTrackers.removeAll {
-                $0.trackerId == trackerID &&
-                Calendar.current.isDate($0.date, inSameDayAs: datePicker.date)
-            }
-            let daysCount = completedTrackers.filter { $0.trackerId == trackerID }.count
-            cell.updateDays(days: daysCount, isAddition: false)
-        }
+
+extension TrackersViewController: CreateDelegateProtocol {
+    func didCreateEvent(title: String, category: TrackerCategory, emoji: Character, color: UIColor) {
+        let colorName = "CustomBlue"
+        let newEvent = Tracker(
+            id: UUID(),
+            title: title,
+            color: colorName,
+            emoji: String(emoji),
+            schedule: []
+        )
+        DataManager.shared.addTracker(newEvent, toCategoryWithTitle: category.title)
+        updateUIAfterTrackerCreation()
     }
+    func didCreateHabit(title: String, category: TrackerCategory, emoji: Character, color: UIColor, schedule: Set<Day>) {
+           let colorName = "CustomGreen" 
+           let newTracker = Tracker(
+               id: UUID(),
+               title: title,
+               color: colorName,
+               emoji: String(emoji),
+               schedule: schedule
+           )
+           DataManager.shared.addTracker(newTracker, toCategoryWithTitle: category.title)
+           updateUIAfterTrackerCreation()
+       }
+    
+    private func updateUIAfterTrackerCreation() {
+        categories = DataManager.shared.categories
+        updatePlaceholderVisibility()
+        collectionView.reloadData()
+    
+        
+        print("Обновление интерфейса. Количество категорий: \(categories.count)")
+    }
+    
 }
