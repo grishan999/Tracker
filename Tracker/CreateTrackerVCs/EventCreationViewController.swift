@@ -146,12 +146,10 @@ final class EventCreationViewController: UIViewController {
     @objc private func createButtonTapped() {
         
         guard let eventName = eventNameTextField.text, !eventName.isEmpty else {
-            print("Название события не может быть пустым")
             return
         }
         
         guard !category.title.isEmpty else {
-            print("Категория не выбрана")
             return
         }
         
@@ -192,7 +190,7 @@ extension EventCreationViewController: UITableViewDelegate,
         
         cell.textLabel?.text = tableViewCells[indexPath.row]
         if indexPath.row == 0 {
-            cell.detailTextLabel?.text = category.title  // Заголовок категории "Спорт"
+            cell.detailTextLabel?.text = category.title  
         }
         
         cell.detailTextLabel?.textColor = UIColor(named: "CustomGray")

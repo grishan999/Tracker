@@ -147,12 +147,10 @@ final class HabitCreationViewController: UIViewController {
 
     @objc private func createButtonTapped() {
         guard let text = habitNameTextField.text, !text.isEmpty else {
-            print("Название привычки не может быть пустым")
             return
         }
 
         guard !schedule.isEmpty else {
-            print("Расписание не выбрано")
             return
         }
 
@@ -252,9 +250,7 @@ extension HabitCreationViewController: UITableViewDelegate,
         tableView.deselectRow(at: indexPath, animated: true)
 
         if indexPath.row == 0 {
-            // Показываем экран выбора категории (если нужно)
         } else if indexPath.row == 1 {
-            // Показываем экран выбора расписания
             let scheduleVC = ScheduleViewController()
             scheduleVC.delegate = self
             scheduleVC.selectedDays = schedule

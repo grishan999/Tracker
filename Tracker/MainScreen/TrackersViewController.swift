@@ -1,11 +1,12 @@
-import UIKit
-
 //
 //  TrackersViewController.swift
 //  Tracker
 //
 //  Created by Ilya Grishanov on 31.03.2025.
 //
+
+import UIKit
+
 protocol CreateDelegateProtocol: AnyObject {
     func didCreateHabit(
         title: String, category: TrackerCategory, emoji: Character,
@@ -30,6 +31,7 @@ final class TrackersViewController: UIViewController {
     private let minimumCellSpacing: CGFloat = 9
 
     private var categories: [TrackerCategory] = []
+    private var hiddenCategories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
 
     override func viewDidLoad() {
@@ -38,6 +40,7 @@ final class TrackersViewController: UIViewController {
         view.backgroundColor = .systemBackground
 
         categories = DataManager.shared.categories
+        filterTrackers(for: datePicker.date)
         setupUI()
 
     }
@@ -103,15 +106,30 @@ final class TrackersViewController: UIViewController {
     }
 
     private func setupNavBarItems() {
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
-            image: UIImage(named: "AddTracker"),
-            style: .plain,
-            target: self,
-            action: #selector(addTrackerButtonTapped)
-        )
-        navigationItem.leftBarButtonItem?.tintColor = UIColor(
-            named: "CustomBlack")
 
+        let addTrackerButton = UIButton(type: .system)
+        addTrackerButton.setImage(UIImage(named: "AddTracker"), for: .normal)
+        addTrackerButton.tintColor = UIColor(named: "CustomBlack")
+        addTrackerButton.addTarget(
+            self, action: #selector(addTrackerButtonTapped), for: .touchUpInside
+        )
+        addTrackerButton.translatesAutoresizingMaskIntoConstraints = false
+
+        guard let navigationBar = navigationController?.navigationBar else {
+            return
+        }
+        navigationBar.addSubview(addTrackerButton)
+
+        NSLayoutConstraint.activate([
+            addTrackerButton.leadingAnchor.constraint(
+                equalTo: navigationBar.leadingAnchor, constant: 6),
+            addTrackerButton.bottomAnchor.constraint(
+                equalTo: navigationBar.bottomAnchor, constant: -8),
+            addTrackerButton.widthAnchor.constraint(equalToConstant: 42),
+            addTrackerButton.heightAnchor.constraint(equalToConstant: 42),
+        ])
+
+        // DatePicker для правой части navigation bar
         let datePicker = UIDatePicker()
         datePicker.tintColor = UIColor(named: "CustomBlack")
         datePicker.datePickerMode = .date
@@ -223,14 +241,15 @@ final class TrackersViewController: UIViewController {
     }
 
     private func updatePlaceholderVisibility() {
-        let hasTrackers = !categories.isEmpty
-        placeholderView.isHidden = hasTrackers
-        collectionView.isHidden = !hasTrackers
+        let hasVisibleTrackers = categories.contains { !$0.trackers.isEmpty }
+           placeholderView.isHidden = hasVisibleTrackers
+           collectionView.isHidden = !hasVisibleTrackers
+           
     }
 
     @objc func addTrackerButtonTapped() {
         let typeCreationVC = TypeCreationViewController()
-        typeCreationVC.delegate = self 
+        typeCreationVC.delegate = self
         let navController = UINavigationController(
             rootViewController: typeCreationVC)
         present(navController, animated: true)
@@ -238,15 +257,37 @@ final class TrackersViewController: UIViewController {
 
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
         let selectedDate = sender.date
+        filterTrackers(for: selectedDate)
+        
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd.MM.yyyy"
         let formattedDate = dateFormatter.string(from: selectedDate)
-        print("Выбранная дата: \(formattedDate)")
 
         updatePlaceholderVisibility()
         collectionView.reloadData()
     }
 
+    private func filterTrackers(for date: Date) {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date) 
+        let today = Date()
+        let isToday = calendar.isDate(date, inSameDayAs: today)
+        
+        categories = DataManager.shared.categories.compactMap { category in
+            let filteredTrackers = category.trackers.filter { tracker in
+                if tracker.schedule.isEmpty {
+                    return isToday
+                }
+                
+                return tracker.schedule.contains { day in
+                    day.calendarDayNumber == weekday
+                }
+            }
+            
+            return filteredTrackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: filteredTrackers)
+        }
+    }
+    
     private func completeTracker(with id: UUID, on date: Date) {
         let record = TrackerRecord(trackerId: id, date: date)
         completedTrackers.append(record)
@@ -286,16 +327,20 @@ extension TrackersViewController: UICollectionViewDataSource,
     UICollectionViewDelegate
 {
     func collectionView(
-        _ collectionView: UICollectionView, numberOfItemsInSection section: Int
+        _ collectionView: UICollectionView,
+        numberOfItemsInSection section: Int
     ) -> Int {
-        return categories[section].trackers.count
+        let nonEmptyCategories = categories.filter { !$0.trackers.isEmpty }
+        return nonEmptyCategories[section].trackers.count
     }
+    
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return categories.count
+        return categories.filter { !$0.trackers.isEmpty }.count
     }
 
     func collectionView(
-        _ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath
+        _ collectionView: UICollectionView,
+        cellForItemAt indexPath: IndexPath
     ) -> UICollectionViewCell {
         guard
             let cell = collectionView.dequeueReusableCell(
@@ -306,11 +351,12 @@ extension TrackersViewController: UICollectionViewDataSource,
             fatalError("Unable to dequeue TrackersCell")
         }
 
-        let tracker = categories[indexPath.section].trackers[indexPath.item]
+        let nonEmptyCategories = categories.filter { !$0.trackers.isEmpty }
+        let tracker = nonEmptyCategories[indexPath.section].trackers[indexPath.item]
+        
         let isCompletedToday = completedTrackers.contains { record in
             record.trackerId == tracker.id
-                && Calendar.current.isDate(
-                    record.date, inSameDayAs: datePicker.date)
+                && Calendar.current.isDate(record.date, inSameDayAs: datePicker.date)
         }
 
         cell.setupCell(
@@ -328,23 +374,23 @@ extension TrackersViewController: UICollectionViewDataSource,
 
     func collectionView(
         _ collectionView: UICollectionView,
-        viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath
+        viewForSupplementaryElementOfKind kind: String,
+        at indexPath: IndexPath
     ) -> UICollectionReusableView {
         switch kind {
         case UICollectionView.elementKindSectionHeader:
             guard
-                let headerView =
-                    collectionView.dequeueReusableSupplementaryView(
-                        ofKind: kind,
-                        withReuseIdentifier: HeaderCategoryView
-                            .headerIdentifier,
-                        for: indexPath
-                    ) as? HeaderCategoryView
+                let headerView = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: kind,
+                    withReuseIdentifier: HeaderCategoryView.headerIdentifier,
+                    for: indexPath
+                ) as? HeaderCategoryView
             else {
                 return UICollectionReusableView()
             }
 
-            headerView.titleLabel.text = categories[indexPath.section].title
+            let nonEmptyCategories = categories.filter { !$0.trackers.isEmpty }
+            headerView.titleLabel.text = nonEmptyCategories[indexPath.section].title
             return headerView
 
         default:
@@ -357,24 +403,33 @@ extension TrackersViewController: TrackersCellDelegate {
     func updateCount(cell: TrackersCell) {
         guard let trackerID = cell.trackerID else { return }
         let selectedDate = datePicker.date
+        
 
+        let calendar = Calendar.current
+        let today = Date()
+        if selectedDate > today {
+            return
+        }
+        
         if let index = completedTrackers.firstIndex(where: {
-            $0.trackerId == trackerID
-                && Calendar.current.isDate($0.date, inSameDayAs: selectedDate)
+            $0.trackerId == trackerID && calendar.isDate($0.date, inSameDayAs: selectedDate)
         }) {
-
             completedTrackers.remove(at: index)
             cell.updateDays(
-                days: completedTrackers.filter { $0.trackerId == trackerID }
-                    .count, isAddition: false)
+                days: completedTrackers.filter { $0.trackerId == trackerID }.count,
+                isAddition: false
+            )
         } else {
-            completedTrackers.append(
-                TrackerRecord(trackerId: trackerID, date: selectedDate))
+            completedTrackers.append(TrackerRecord(trackerId: trackerID, date: selectedDate))
             cell.updateDays(
-                days: completedTrackers.filter { $0.trackerId == trackerID }
-                    .count, isAddition: true)
+                days: completedTrackers.filter { $0.trackerId == trackerID }.count,
+                isAddition: true
+            )
         }
-        collectionView.reloadData()
+        
+        if let indexPath = collectionView.indexPath(for: cell) {
+            collectionView.reloadItems(at: [indexPath])
+        }
     }
 }
 
@@ -436,7 +491,7 @@ extension TrackersViewController: CreateDelegateProtocol {
         title: String, category: TrackerCategory, emoji: Character,
         color: UIColor, schedule: Set<Day>
     ) {
-        let colorName = "CustomPink"
+        let colorName = "CustomGray"
         let newTracker = Tracker(
             id: UUID(),
             title: title,
@@ -451,11 +506,10 @@ extension TrackersViewController: CreateDelegateProtocol {
 
     private func updateUIAfterTrackerCreation() {
         categories = DataManager.shared.categories
+        filterTrackers(for: datePicker.date)
         updatePlaceholderVisibility()
         collectionView.reloadData()
-
-        print(
-            "Обновление интерфейса. Количество категорий: \(categories.count)")
+ 
     }
 
 }
