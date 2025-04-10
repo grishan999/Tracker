@@ -8,11 +8,11 @@
 import UIKit
 
 final class EventCreationViewController: UIViewController {
-    
+
     private var category: TrackerCategory = TrackerCategory(
         title: "Уборка", trackers: [])
     weak var delegate: CreateDelegateProtocol?
-    
+
     private lazy var eventNameTextField: UITextField = {
         let textField = UITextField()
         textField.backgroundColor = UIColor(named: "CustomBackgroundDay")
@@ -28,9 +28,9 @@ final class EventCreationViewController: UIViewController {
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
-    
+
     private let tableViewCells: [String] = ["Категория"]
-    
+
     private lazy var settingsTableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .clear
@@ -44,7 +44,7 @@ final class EventCreationViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
-    
+
     private lazy var cancelButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Отмена", for: .normal)
@@ -58,7 +58,7 @@ final class EventCreationViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
+
     private lazy var createButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setTitle("Создать", for: .normal)
@@ -73,7 +73,7 @@ final class EventCreationViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
+
     private lazy var buttonsStackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [
             cancelButton, createButton,
@@ -84,27 +84,26 @@ final class EventCreationViewController: UIViewController {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        
+
         navigationController?.navigationBar.tintColor = UIColor(
             named: "CustomBlack")
         navigationItem.title = "Новое событие"
-        
+
         setupUI()
     }
-    
+
     private func setupUI() {
         view.addSubview(eventNameTextField)
         view.addSubview(settingsTableView)
         view.addSubview(buttonsStackView)
-        
-        // Начальное состояние кнопки "Создать"
+
         createButton.backgroundColor = UIColor(named: "CustomGray")
         createButton.isEnabled = false
-        
+
         NSLayoutConstraint.activate([
             eventNameTextField.topAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
@@ -113,7 +112,7 @@ final class EventCreationViewController: UIViewController {
             eventNameTextField.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor, constant: -16),
             eventNameTextField.heightAnchor.constraint(equalToConstant: 75),
-            
+
             settingsTableView.topAnchor.constraint(
                 equalTo: eventNameTextField.bottomAnchor, constant: 24),
             settingsTableView.leadingAnchor.constraint(
@@ -121,7 +120,7 @@ final class EventCreationViewController: UIViewController {
             settingsTableView.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor, constant: -16),
             settingsTableView.heightAnchor.constraint(equalToConstant: 150),
-            
+
             buttonsStackView.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             buttonsStackView.leadingAnchor.constraint(
@@ -129,40 +128,40 @@ final class EventCreationViewController: UIViewController {
             buttonsStackView.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor, constant: -20),
             buttonsStackView.heightAnchor.constraint(equalToConstant: 60),
-            
+
             cancelButton.widthAnchor.constraint(
                 equalTo: createButton.widthAnchor),
         ])
     }
-    
+
     @objc private func textFieldDidChange() {
         updateCreateButtonState()
     }
-    
+
     @objc private func cancelButtonTapped() {
         self.dismiss(animated: true)
     }
-    
+
     @objc private func createButtonTapped() {
-        
+
         guard let eventName = eventNameTextField.text, !eventName.isEmpty else {
             return
         }
-        
+
         guard !category.title.isEmpty else {
             return
         }
-        
+
         delegate?.didCreateEvent(
             title: eventName, category: category, emoji: "🫡", color: .clear)
         presentingViewController?.presentingViewController?.dismiss(
             animated: true)
-        
+
     }
-    
+
     private func updateCreateButtonState() {
         let isTextValid = !(eventNameTextField.text?.isEmpty ?? true)
-        
+
         if isTextValid {
             createButton.backgroundColor = UIColor(named: "CustomBlack")
             createButton.isEnabled = true
@@ -174,39 +173,61 @@ final class EventCreationViewController: UIViewController {
 }
 
 extension EventCreationViewController: UITableViewDelegate,
-                                       UITableViewDataSource
+    UITableViewDataSource
 {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int)
-    -> Int
+        -> Int
     {
         return tableViewCells.count
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
-    -> UITableViewCell
+        -> UITableViewCell
     {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         cell.accessoryType = .disclosureIndicator
-        
+
         cell.textLabel?.text = tableViewCells[indexPath.row]
         if indexPath.row == 0 {
-            cell.detailTextLabel?.text = category.title  
+            cell.detailTextLabel?.text = category.title
         }
-        
+
         cell.detailTextLabel?.textColor = UIColor(named: "CustomGray")
         cell.textLabel?.font = .systemFont(ofSize: 17, weight: .regular)
         cell.textLabel?.textColor = UIColor(named: "CustomBlack")
         cell.detailTextLabel?.font = .systemFont(ofSize: 17, weight: .regular)
-        
+
         cell.accessoryType = .disclosureIndicator
         cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
         cell.backgroundView = UIView()
         cell.backgroundView?.backgroundColor = UIColor(
             named: "CustomBackgroundDay")
-        
+
         return cell
     }
-    
+
+    func tableView(
+        _ tableView: UITableView, willDisplay cell: UITableViewCell,
+        forRowAt indexPath: IndexPath
+    ) {
+        let cornerRadius: CGFloat = 16
+        let isLastCell = indexPath.row == tableViewCells.count - 1
+
+        if isLastCell {
+            cell.layer.maskedCorners = [
+                .layerMinXMaxYCorner, .layerMaxXMaxYCorner,
+            ]
+            cell.layer.cornerRadius = cornerRadius
+            cell.layer.masksToBounds = true
+
+            cell.separatorInset = UIEdgeInsets(
+                top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
+        } else {
+            cell.layer.maskedCorners = []
+            cell.layer.cornerRadius = 0
+        }
+    }
+
     func tableView(
         _ tableView: UITableView, heightForRowAt indexPath: IndexPath
     ) -> CGFloat {
