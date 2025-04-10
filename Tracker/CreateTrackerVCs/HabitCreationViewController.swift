@@ -8,13 +8,13 @@
 import UIKit
 
 final class HabitCreationViewController: UIViewController {
-
+    
     private var category: TrackerCategory = TrackerCategory(
         title: "Уборка", trackers: [])
     private var schedule: Set<Day> = []
-
+    
     weak var delegate: CreateDelegateProtocol?
-
+    
     private lazy var habitNameTextField: UITextField = {
         let textField = UITextField()
         textField.backgroundColor = UIColor(named: "CustomBackgroundDay")
@@ -30,9 +30,9 @@ final class HabitCreationViewController: UIViewController {
         textField.translatesAutoresizingMaskIntoConstraints = false
         return textField
     }()
-
+    
     private let tableViewCells: [String] = ["Категория", "Расписание"]
-
+    
     private lazy var settingsTableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .clear
@@ -46,7 +46,7 @@ final class HabitCreationViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
-
+    
     private lazy var cancelButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Отмена", for: .normal)
@@ -60,7 +60,7 @@ final class HabitCreationViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-
+    
     private lazy var createButton: UIButton = {
         let button = UIButton(type: .custom)
         button.setTitle("Создать", for: .normal)
@@ -75,7 +75,7 @@ final class HabitCreationViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-
+    
     private lazy var buttonsStackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [
             cancelButton, createButton,
@@ -86,27 +86,26 @@ final class HabitCreationViewController: UIViewController {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-
+        
         navigationController?.navigationBar.tintColor = UIColor(
             named: "CustomBlack")
         navigationItem.title = "Новая привычка"
-
+        
         setupUI()
     }
-
+    
     private func setupUI() {
         view.addSubview(habitNameTextField)
         view.addSubview(settingsTableView)
         view.addSubview(buttonsStackView)
-
-        // Начальное состояние кнопки "Создать"
+        
         createButton.backgroundColor = UIColor(named: "CustomGray")
         createButton.isEnabled = false
-
+        
         NSLayoutConstraint.activate([
             habitNameTextField.topAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
@@ -115,7 +114,7 @@ final class HabitCreationViewController: UIViewController {
             habitNameTextField.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor, constant: -16),
             habitNameTextField.heightAnchor.constraint(equalToConstant: 75),
-
+            
             settingsTableView.topAnchor.constraint(
                 equalTo: habitNameTextField.bottomAnchor, constant: 24),
             settingsTableView.leadingAnchor.constraint(
@@ -123,7 +122,7 @@ final class HabitCreationViewController: UIViewController {
             settingsTableView.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor, constant: -16),
             settingsTableView.heightAnchor.constraint(equalToConstant: 150),
-
+            
             buttonsStackView.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             buttonsStackView.leadingAnchor.constraint(
@@ -131,40 +130,40 @@ final class HabitCreationViewController: UIViewController {
             buttonsStackView.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor, constant: -20),
             buttonsStackView.heightAnchor.constraint(equalToConstant: 60),
-
+            
             cancelButton.widthAnchor.constraint(
                 equalTo: createButton.widthAnchor),
         ])
     }
-
+    
     @objc private func textFieldDidChange() {
         updateCreateButtonState()
     }
-
+    
     @objc private func cancelButtonTapped() {
         self.dismiss(animated: true)
     }
-
+    
     @objc private func createButtonTapped() {
         guard let text = habitNameTextField.text, !text.isEmpty else {
             return
         }
-
+        
         guard !schedule.isEmpty else {
             return
         }
-
+        
         delegate?.didCreateHabit(
             title: text, category: category, emoji: "📌", color: .clear,
             schedule: schedule)
         presentingViewController?.presentingViewController?.dismiss(
             animated: true)
     }
-
+    
     private func updateCreateButtonState() {
         let isTextValid = !(habitNameTextField.text?.isEmpty ?? true)
         let isScheduleSelected = !schedule.isEmpty
-
+        
         if isTextValid && isScheduleSelected {
             createButton.backgroundColor = UIColor(named: "CustomBlack")
             createButton.isEnabled = true
@@ -176,79 +175,92 @@ final class HabitCreationViewController: UIViewController {
 }
 
 extension HabitCreationViewController: UITableViewDelegate,
-    UITableViewDataSource
+                                       UITableViewDataSource
 {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int)
-        -> Int
+    -> Int
     {
         return tableViewCells.count
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
-        -> UITableViewCell
+    -> UITableViewCell
     {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         cell.accessoryType = .disclosureIndicator
-
+        
         cell.textLabel?.text = tableViewCells[indexPath.row]
         if indexPath.row == 0 {
             cell.detailTextLabel?.text = category.title
         } else if indexPath.row == 1 {
             cell.detailTextLabel?.text = formatScheduleText(days: schedule)
         }
-
+        
         cell.detailTextLabel?.textColor = UIColor(named: "CustomGray")
         cell.textLabel?.font = .systemFont(ofSize: 17, weight: .regular)
         cell.textLabel?.textColor = UIColor(named: "CustomBlack")
         cell.detailTextLabel?.font = .systemFont(ofSize: 17, weight: .regular)
-
-        cell.accessoryType = .disclosureIndicator
         cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
-        cell.backgroundView = UIView()
-        cell.backgroundView?.backgroundColor = UIColor(
-            named: "CustomBackgroundDay")
-
+        
+        let separator = UIView()
+        separator.backgroundColor = UIColor(named: "CustomGray")?
+            .withAlphaComponent(0.3)
+        separator.tag = 100
+        cell.contentView.addSubview(separator)
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            separator.leadingAnchor.constraint(
+                equalTo: cell.contentView.leadingAnchor, constant: 16),
+            separator.trailingAnchor.constraint(
+                equalTo: cell.contentView.trailingAnchor, constant: -16),
+            separator.bottomAnchor.constraint(
+                equalTo: cell.contentView.bottomAnchor),
+            separator.heightAnchor.constraint(equalToConstant: 0.5),
+        ])
+        
+        let isLastCell = indexPath.row == tableViewCells.count - 1
+        separator.isHidden = isLastCell
+        
         return cell
     }
-
+    
     func tableView(
         _ tableView: UITableView, heightForRowAt indexPath: IndexPath
     ) -> CGFloat {
         return 75
     }
-
+    
     func tableView(
         _ tableView: UITableView, willDisplay cell: UITableViewCell,
         forRowAt indexPath: IndexPath
     ) {
         let cornerRadius: CGFloat = 16
-        var corners: UIRectCorner = []
-
-        if indexPath.row == 0 {
-            corners.update(with: .topLeft)
-            corners.update(with: .topRight)
+        let isFirstCell = indexPath.row == 0
+        let isLastCell = indexPath.row == tableViewCells.count - 1
+        
+        if isFirstCell {
+            cell.layer.maskedCorners = [
+                .layerMinXMinYCorner, .layerMaxXMinYCorner,
+            ]
+            cell.layer.cornerRadius = cornerRadius
+        } else if isLastCell {
+            cell.layer.maskedCorners = [
+                .layerMinXMaxYCorner, .layerMaxXMaxYCorner,
+            ]
+            cell.layer.cornerRadius = cornerRadius
+        } else {
+            cell.layer.cornerRadius = 0
         }
-
-        if indexPath.row == tableViewCells.count - 1 {
-            corners.update(with: .bottomLeft)
-            corners.update(with: .bottomRight)
-        }
-
-        let maskLayer = CAShapeLayer()
-        maskLayer.path =
-            UIBezierPath(
-                roundedRect: cell.bounds,
-                byRoundingCorners: corners,
-                cornerRadii: CGSize(width: cornerRadius, height: cornerRadius)
-            ).cgPath
-        cell.layer.mask = maskLayer
+        cell.layer.masksToBounds = true
+        tableView.separatorStyle = .none
     }
-
+    
     func tableView(
         _ tableView: UITableView, didSelectRowAt indexPath: IndexPath
     ) {
         tableView.deselectRow(at: indexPath, animated: true)
-
+        
         if indexPath.row == 0 {
         } else if indexPath.row == 1 {
             let scheduleVC = ScheduleViewController()
@@ -271,14 +283,14 @@ extension HabitCreationViewController: ScheduleViewControllerDelegate {
         }
         updateCreateButtonState()
     }
-
+    
     private func formatScheduleText(days: Set<Day>) -> String {
         guard !days.isEmpty else { return "" }
-
+        
         if days.count == Day.allCases.count {
             return "Каждый день"
         }
-
+        
         let sortedDays = Day.allCases.filter { days.contains($0) }
         return sortedDays.map { $0.shortName }.joined(separator: ", ")
     }

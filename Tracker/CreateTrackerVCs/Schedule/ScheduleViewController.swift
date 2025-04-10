@@ -12,10 +12,10 @@ protocol ScheduleViewControllerDelegate: AnyObject {
 }
 
 final class ScheduleViewController: UIViewController {
-
+    
     weak var delegate: ScheduleViewControllerDelegate?
     var selectedDays: Set<Day> = []
-
+    
     private lazy var scheduleTableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .clear
@@ -31,7 +31,7 @@ final class ScheduleViewController: UIViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
-
+    
     private lazy var doneButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Готово", for: .normal)
@@ -44,26 +44,26 @@ final class ScheduleViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(
             named: "CustomWhite")
-
+        
         navigationController?.navigationBar.tintColor = UIColor(
             named: "CustomBlack")
         navigationItem.title = "Расписание"
-
+        
         setupUI()
     }
-
+    
     private func setupUI() {
         view.addSubview(scheduleTableView)
         view.addSubview(doneButton)
-
+        
         scheduleTableView.separatorStyle = .none
         scheduleTableView.tableFooterView = UIView()
-
+        
         NSLayoutConstraint.activate([
             scheduleTableView.topAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
@@ -74,7 +74,7 @@ final class ScheduleViewController: UIViewController {
             scheduleTableView.bottomAnchor.constraint(
                 equalTo: doneButton.topAnchor, constant: -16),
             scheduleTableView.heightAnchor.constraint(equalToConstant: 525),
-
+            
             doneButton.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             doneButton.heightAnchor.constraint(equalToConstant: 60),
@@ -84,7 +84,7 @@ final class ScheduleViewController: UIViewController {
                 equalTo: view.trailingAnchor, constant: -20),
         ])
     }
-
+    
     @objc private func doneButtonTapped() {
         delegate?.didSelectSchedule(selectedDays)
         dismiss(animated: true)
@@ -93,13 +93,13 @@ final class ScheduleViewController: UIViewController {
 
 extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int)
-        -> Int
+    -> Int
     {
         return Day.allCases.count
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
-        -> UITableViewCell
+    -> UITableViewCell
     {
         guard
             let cell = tableView.dequeueReusableCell(
@@ -108,21 +108,27 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
         else {
             return UITableViewCell()
         }
-
+        
         let day = Day.allCases[indexPath.row]
         let isLastCell = indexPath.row == Day.allCases.count - 1
         cell.configure(
             with: day.rawValue, isOn: selectedDays.contains(day),
             isLastCell: isLastCell)
-
+        
         cell.toggleSwitch.onTintColor = .systemBlue
         cell.toggleSwitch.tag = indexPath.row
         cell.toggleSwitch.addTarget(
             self, action: #selector(switchValueChanged(_:)), for: .valueChanged)
-
+        
         return cell
     }
-
+    
+    func tableView(
+        _ tableView: UITableView, heightForRowAt indexPath: IndexPath
+    ) -> CGFloat {
+        return 75
+    }
+    
     @objc private func switchValueChanged(_ sender: UISwitch) {
         let day = Day.allCases[sender.tag]
         if sender.isOn {
@@ -131,11 +137,5 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
             selectedDays.remove(day)
         }
     }
-
-    func tableView(
-        _ tableView: UITableView, heightForRowAt indexPath: IndexPath
-    ) -> CGFloat {
-        return 75
-    }
-
+    
 }
