@@ -18,7 +18,7 @@ final class ScheduleViewController: UIViewController {
 
     private lazy var scheduleTableView: UITableView = {
         let tableView = UITableView()
-        tableView.backgroundColor = UIColor(named: "CustomBackgroundDay")
+        tableView.backgroundColor = .clear
         tableView.layer.cornerRadius = 16
         tableView.delegate = self
         tableView.dataSource = self
@@ -47,7 +47,8 @@ final class ScheduleViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = UIColor(
+            named: "CustomWhite")
 
         navigationController?.navigationBar.tintColor = UIColor(
             named: "CustomBlack")
@@ -60,6 +61,9 @@ final class ScheduleViewController: UIViewController {
         view.addSubview(scheduleTableView)
         view.addSubview(doneButton)
 
+        scheduleTableView.separatorStyle = .none
+        scheduleTableView.tableFooterView = UIView()
+
         NSLayoutConstraint.activate([
             scheduleTableView.topAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
@@ -69,6 +73,7 @@ final class ScheduleViewController: UIViewController {
                 equalTo: view.trailingAnchor, constant: -16),
             scheduleTableView.bottomAnchor.constraint(
                 equalTo: doneButton.topAnchor, constant: -16),
+            scheduleTableView.heightAnchor.constraint(equalToConstant: 525),
 
             doneButton.bottomAnchor.constraint(
                 equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
@@ -105,10 +110,12 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
         }
 
         let day = Day.allCases[indexPath.row]
-        cell.configure(with: day.rawValue, isOn: selectedDays.contains(day))
+        let isLastCell = indexPath.row == Day.allCases.count - 1
+        cell.configure(
+            with: day.rawValue, isOn: selectedDays.contains(day),
+            isLastCell: isLastCell)
 
         cell.toggleSwitch.onTintColor = .systemBlue
-
         cell.toggleSwitch.tag = indexPath.row
         cell.toggleSwitch.addTarget(
             self, action: #selector(switchValueChanged(_:)), for: .valueChanged)
@@ -131,30 +138,4 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
         return 75
     }
 
-    func tableView(
-        _ tableView: UITableView, willDisplay cell: UITableViewCell,
-        forRowAt indexPath: IndexPath
-    ) {
-        let cornerRadius: CGFloat = 16
-        var corners: UIRectCorner = []
-
-        if indexPath.row == 0 {
-            corners.update(with: .topLeft)
-            corners.update(with: .topRight)
-        }
-
-        if indexPath.row == Day.allCases.count - 1 {
-            corners.update(with: .bottomLeft)
-            corners.update(with: .bottomRight)
-        }
-
-        let maskLayer = CAShapeLayer()
-        maskLayer.path =
-            UIBezierPath(
-                roundedRect: cell.bounds,
-                byRoundingCorners: corners,
-                cornerRadii: CGSize(width: cornerRadius, height: cornerRadius)
-            ).cgPath
-        cell.layer.mask = maskLayer
-    }
 }

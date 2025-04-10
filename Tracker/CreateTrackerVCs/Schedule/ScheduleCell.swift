@@ -10,33 +10,33 @@ import UIKit
 final class ScheduleCell: UITableViewCell {
     static let reuseIdentifier = "ScheduleCell"
 
-    let titleLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 17, weight: .regular)
-        label.textColor = UIColor(named: "CustomBlack")
-        label.textAlignment = .left
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    let toggleSwitch: UISwitch = {
-        let toggle = UISwitch()
-        toggle.translatesAutoresizingMaskIntoConstraints = false
-        return toggle
-    }()
+    let toggleSwitch = UISwitch()
+    private let titleLabel = UILabel()
+    private let separatorView = UIView()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
+        setupViews()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
-    private func setupUI() {
+    private func setupViews() {
+        backgroundColor = UIColor(named: "CustomBackgroundDay")
+
+        titleLabel.font = UIFont.systemFont(ofSize: 17)
         contentView.addSubview(titleLabel)
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
         contentView.addSubview(toggleSwitch)
+        toggleSwitch.translatesAutoresizingMaskIntoConstraints = false
+
+        separatorView.backgroundColor = UIColor(
+            named: "CustomGray")
+        contentView.addSubview(separatorView)
+        separatorView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(
@@ -48,11 +48,29 @@ final class ScheduleCell: UITableViewCell {
                 equalTo: contentView.trailingAnchor, constant: -16),
             toggleSwitch.centerYAnchor.constraint(
                 equalTo: contentView.centerYAnchor),
+
+            separatorView.leadingAnchor.constraint(
+                equalTo: contentView.leadingAnchor, constant: 16),
+            separatorView.trailingAnchor.constraint(
+                equalTo: contentView.trailingAnchor, constant: -16),
+            separatorView.bottomAnchor.constraint(
+                equalTo: contentView.bottomAnchor),
+            separatorView.heightAnchor.constraint(equalToConstant: 0.5),
         ])
     }
 
-    func configure(with title: String, isOn: Bool) {
+    func configure(with title: String, isOn: Bool, isLastCell: Bool = false) {
         titleLabel.text = title
         toggleSwitch.isOn = isOn
+        separatorView.isHidden = isLastCell
+
+        layer.cornerRadius = 0
+        layer.maskedCorners = []
+
+        if isLastCell {
+            layer.cornerRadius = 16
+            layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            layer.masksToBounds = true
+        }
     }
 }
