@@ -129,7 +129,6 @@ final class TrackersViewController: UIViewController {
             addTrackerButton.heightAnchor.constraint(equalToConstant: 42),
         ])
 
-        // DatePicker для правой части navigation bar
         let datePicker = UIDatePicker()
         datePicker.tintColor = UIColor(named: "CustomBlack")
         datePicker.datePickerMode = .date
@@ -242,9 +241,9 @@ final class TrackersViewController: UIViewController {
 
     private func updatePlaceholderVisibility() {
         let hasVisibleTrackers = categories.contains { !$0.trackers.isEmpty }
-           placeholderView.isHidden = hasVisibleTrackers
-           collectionView.isHidden = !hasVisibleTrackers
-           
+        placeholderView.isHidden = hasVisibleTrackers
+        collectionView.isHidden = !hasVisibleTrackers
+
     }
 
     @objc func addTrackerButtonTapped() {
@@ -257,11 +256,8 @@ final class TrackersViewController: UIViewController {
 
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
         let selectedDate = sender.date
+        datePicker.date = selectedDate  
         filterTrackers(for: selectedDate)
-        
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yyyy"
-        let formattedDate = dateFormatter.string(from: selectedDate)
 
         updatePlaceholderVisibility()
         collectionView.reloadData()
@@ -269,25 +265,28 @@ final class TrackersViewController: UIViewController {
 
     private func filterTrackers(for date: Date) {
         let calendar = Calendar.current
-        let weekday = calendar.component(.weekday, from: date) 
+        let weekday = calendar.component(.weekday, from: date)
         let today = Date()
         let isToday = calendar.isDate(date, inSameDayAs: today)
-        
+
         categories = DataManager.shared.categories.compactMap { category in
             let filteredTrackers = category.trackers.filter { tracker in
                 if tracker.schedule.isEmpty {
                     return isToday
                 }
-                
+
                 return tracker.schedule.contains { day in
                     day.calendarDayNumber == weekday
                 }
             }
-            
-            return filteredTrackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: filteredTrackers)
+
+            return filteredTrackers.isEmpty
+                ? nil
+                : TrackerCategory(
+                    title: category.title, trackers: filteredTrackers)
         }
     }
-    
+
     private func completeTracker(with id: UUID, on date: Date) {
         let record = TrackerRecord(trackerId: id, date: date)
         completedTrackers.append(record)
@@ -333,31 +332,32 @@ extension TrackersViewController: UICollectionViewDataSource,
         let nonEmptyCategories = categories.filter { !$0.trackers.isEmpty }
         return nonEmptyCategories[section].trackers.count
     }
-    
+
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return categories.filter { !$0.trackers.isEmpty }.count
     }
 
     func collectionView(
-        _ collectionView: UICollectionView,
-        cellForItemAt indexPath: IndexPath
+        _ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath
     ) -> UICollectionViewCell {
         guard
             let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: TrackersCell.cellIdentifier,
-                for: indexPath
+                withReuseIdentifier: TrackersCell.cellIdentifier, for: indexPath
             ) as? TrackersCell
         else {
             fatalError("Unable to dequeue TrackersCell")
         }
 
-        let nonEmptyCategories = categories.filter { !$0.trackers.isEmpty }
-        let tracker = nonEmptyCategories[indexPath.section].trackers[indexPath.item]
-        
+        let tracker = categories[indexPath.section].trackers[indexPath.item]
         let isCompletedToday = completedTrackers.contains { record in
             record.trackerId == tracker.id
-                && Calendar.current.isDate(record.date, inSameDayAs: datePicker.date)
+                && Calendar.current.isDate(
+                    record.date, inSameDayAs: datePicker.date)
         }
+
+        let today = Calendar.current.startOfDay(for: Date())
+        let cellDate = Calendar.current.startOfDay(for: datePicker.date)
+        let isEnabled = cellDate <= today
 
         cell.setupCell(
             name: tracker.title,
@@ -365,10 +365,11 @@ extension TrackersViewController: UICollectionViewDataSource,
             emoji: Character(tracker.emoji),
             days: completedTrackers.filter { $0.trackerId == tracker.id }.count,
             trackerID: tracker.id,
-            isCompletedToday: isCompletedToday)
+            isCompletedToday: isCompletedToday,
+            isEnabled: isEnabled
+        )
 
         cell.delegate = self
-
         return cell
     }
 
@@ -380,17 +381,20 @@ extension TrackersViewController: UICollectionViewDataSource,
         switch kind {
         case UICollectionView.elementKindSectionHeader:
             guard
-                let headerView = collectionView.dequeueReusableSupplementaryView(
-                    ofKind: kind,
-                    withReuseIdentifier: HeaderCategoryView.headerIdentifier,
-                    for: indexPath
-                ) as? HeaderCategoryView
+                let headerView =
+                    collectionView.dequeueReusableSupplementaryView(
+                        ofKind: kind,
+                        withReuseIdentifier: HeaderCategoryView
+                            .headerIdentifier,
+                        for: indexPath
+                    ) as? HeaderCategoryView
             else {
                 return UICollectionReusableView()
             }
 
             let nonEmptyCategories = categories.filter { !$0.trackers.isEmpty }
-            headerView.titleLabel.text = nonEmptyCategories[indexPath.section].title
+            headerView.titleLabel.text =
+                nonEmptyCategories[indexPath.section].title
             return headerView
 
         default:
@@ -403,28 +407,21 @@ extension TrackersViewController: TrackersCellDelegate {
     func updateCount(cell: TrackersCell) {
         guard let trackerID = cell.trackerID else { return }
         let selectedDate = datePicker.date
-        
 
         let calendar = Calendar.current
-        let today = Date()
-        if selectedDate > today {
-            return
-        }
-        
+        let today = calendar.startOfDay(for: Date())
+        let cellDate = calendar.startOfDay(for: selectedDate)
+
+        guard cellDate <= today else { return }
+
         if let index = completedTrackers.firstIndex(where: {
-            $0.trackerId == trackerID && calendar.isDate($0.date, inSameDayAs: selectedDate)
+            $0.trackerId == trackerID
+                && calendar.isDate($0.date, inSameDayAs: selectedDate)
         }) {
             completedTrackers.remove(at: index)
-            cell.updateDays(
-                days: completedTrackers.filter { $0.trackerId == trackerID }.count,
-                isAddition: false
-            )
         } else {
-            completedTrackers.append(TrackerRecord(trackerId: trackerID, date: selectedDate))
-            cell.updateDays(
-                days: completedTrackers.filter { $0.trackerId == trackerID }.count,
-                isAddition: true
-            )
+            completedTrackers.append(
+                TrackerRecord(trackerId: trackerID, date: selectedDate))
         }
         
         if let indexPath = collectionView.indexPath(for: cell) {
@@ -509,7 +506,7 @@ extension TrackersViewController: CreateDelegateProtocol {
         filterTrackers(for: datePicker.date)
         updatePlaceholderVisibility()
         collectionView.reloadData()
- 
+
     }
 
 }
