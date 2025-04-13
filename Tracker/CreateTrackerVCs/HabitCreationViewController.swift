@@ -13,6 +13,8 @@ final class HabitCreationViewController: UIViewController {
         title: "Уборка", trackers: [])
     private var schedule: Set<Day> = []
     
+    private let emojies = ["🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦","🏓","🥇","🎸","🏝️","😪"]
+    
     weak var delegate: CreateDelegateProtocol?
     
     private lazy var habitNameTextField: UITextField = {
