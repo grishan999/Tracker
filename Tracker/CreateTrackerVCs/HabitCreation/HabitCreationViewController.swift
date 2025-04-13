@@ -5,17 +5,51 @@
 //  Created by Ilya Grishanov on 07.04.2025.
 //
 
+protocol HabitEmojiSelectionDelegate: AnyObject {
+    func didSelectEmoji(_ emoji: String)
+}
+
+protocol HabitColorSelectionDelegate: AnyObject {
+    func didSelectColor(_ color: UIColor)
+}
+
 import UIKit
 
 final class HabitCreationViewController: UIViewController {
     
+    weak var delegate: CreateDelegateProtocol?
+    
     private var category: TrackerCategory = TrackerCategory(
         title: "Уборка", trackers: [])
     private var schedule: Set<Day> = []
+    private var selectedEmoji: String?
+    private var selectedColor: UIColor?
     
-    private let emojies = ["🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦","🏓","🥇","🎸","🏝️","😪"]
+    private let emojies = [
+        "🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓",
+        "🥇", "🎸", "🏝️", "😪",
+    ]
+    private let colors: [UIColor] = [
+        UIColor(named: "Selection 1"),
+        UIColor(named: "Selection 2"),
+        UIColor(named: "Selection 3"),
+        UIColor(named: "Selection 4"),
+        UIColor(named: "Selection 5"),
+        UIColor(named: "Selection 6"),
+        UIColor(named: "Selection 7"),
+        UIColor(named: "Selection 8"),
+        UIColor(named: "Selection 9"),
+        UIColor(named: "Selection 10"),
+        UIColor(named: "Selection 11"),
+        UIColor(named: "Selection 12"),
+        UIColor(named: "Selection 13"),
+        UIColor(named: "Selection 14"),
+        UIColor(named: "Selection 15"),
+        UIColor(named: "Selection 16"),
+        UIColor(named: "Selection 17"),
+        UIColor(named: "Selection 18"),
+    ].compactMap { $0 }
     
-    weak var delegate: CreateDelegateProtocol?
     
     private lazy var habitNameTextField: UITextField = {
         let textField = UITextField()
@@ -89,6 +123,36 @@ final class HabitCreationViewController: UIViewController {
         return stackView
     }()
     
+    private lazy var emojiCollectionView: HabitEmojiCollection = {
+        let collectionView = HabitEmojiCollection(emojies: emojies)
+        collectionView.selectionDelegate = self
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
+    
+    private lazy var emojiHeaderLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Emoji"
+        label.font = UIFont(name: "YS Display Bold", size: 19)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private lazy var colorCollectionView: HabitColorCollection = {
+        let collectionView = HabitColorCollection(colors: colors)
+        collectionView.selectionDelegate = self
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
+    
+    private lazy var colorHeaderLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Цвет"
+        label.font = UIFont(name: "YS Display Bold", size: 19)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -101,40 +165,73 @@ final class HabitCreationViewController: UIViewController {
     }
     
     private func setupUI() {
-        view.addSubview(habitNameTextField)
-        view.addSubview(settingsTableView)
-        view.addSubview(buttonsStackView)
+        
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scrollView)
+        
+        let contentView = UIView()
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(contentView)
+        
+        contentView.addSubview(habitNameTextField)
+        contentView.addSubview(settingsTableView)
+        contentView.addSubview(emojiHeaderLabel)
+        contentView.addSubview(emojiCollectionView)
+        contentView.addSubview(colorHeaderLabel)
+        contentView.addSubview(colorCollectionView)
+        contentView.addSubview(buttonsStackView)
         
         createButton.backgroundColor = UIColor(named: "CustomGray")
         createButton.isEnabled = false
         
+        
         NSLayoutConstraint.activate([
-            habitNameTextField.topAnchor.constraint(
-                equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
-            habitNameTextField.leadingAnchor.constraint(
-                equalTo: view.leadingAnchor, constant: 16),
-            habitNameTextField.trailingAnchor.constraint(
-                equalTo: view.trailingAnchor, constant: -16),
+            
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            
+            habitNameTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            habitNameTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            habitNameTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             habitNameTextField.heightAnchor.constraint(equalToConstant: 75),
             
-            settingsTableView.topAnchor.constraint(
-                equalTo: habitNameTextField.bottomAnchor, constant: 24),
-            settingsTableView.leadingAnchor.constraint(
-                equalTo: view.leadingAnchor, constant: 16),
-            settingsTableView.trailingAnchor.constraint(
-                equalTo: view.trailingAnchor, constant: -16),
+            settingsTableView.topAnchor.constraint(equalTo: habitNameTextField.bottomAnchor, constant: 24),
+            settingsTableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            settingsTableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             settingsTableView.heightAnchor.constraint(equalToConstant: 150),
             
-            buttonsStackView.bottomAnchor.constraint(
-                equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            buttonsStackView.leadingAnchor.constraint(
-                equalTo: view.leadingAnchor, constant: 20),
-            buttonsStackView.trailingAnchor.constraint(
-                equalTo: view.trailingAnchor, constant: -20),
+            emojiHeaderLabel.topAnchor.constraint(equalTo: settingsTableView.bottomAnchor, constant: 32),
+            emojiHeaderLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 28),
+            
+            emojiCollectionView.topAnchor.constraint(equalTo: emojiHeaderLabel.bottomAnchor, constant: 16),
+            emojiCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            emojiCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            emojiCollectionView.heightAnchor.constraint(equalToConstant: 204),
+            
+            colorHeaderLabel.topAnchor.constraint(equalTo: emojiCollectionView.bottomAnchor, constant: 16),
+            colorHeaderLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 28),
+            
+            colorCollectionView.topAnchor.constraint(equalTo: colorHeaderLabel.bottomAnchor, constant: 16),
+            colorCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            colorCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            colorCollectionView.heightAnchor.constraint(equalToConstant: 204), // Высота по умолчанию
+            
+            buttonsStackView.topAnchor.constraint(equalTo: colorCollectionView.bottomAnchor, constant: 16),
+            buttonsStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            buttonsStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            buttonsStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
             buttonsStackView.heightAnchor.constraint(equalToConstant: 60),
             
-            cancelButton.widthAnchor.constraint(
-                equalTo: createButton.widthAnchor),
+            cancelButton.widthAnchor.constraint(equalTo: createButton.widthAnchor),
         ])
     }
     
@@ -147,26 +244,27 @@ final class HabitCreationViewController: UIViewController {
     }
     
     @objc private func createButtonTapped() {
-        guard let text = habitNameTextField.text, !text.isEmpty else {
-            return
-        }
-        
-        guard !schedule.isEmpty else {
-            return
-        }
-        
+        guard let text = habitNameTextField.text, !text.isEmpty else { return }
+        guard !schedule.isEmpty else { return }
+        guard let selectedEmoji = selectedEmoji, let emojiCharacter = selectedEmoji.first else { return }
+        guard let selectedColor = selectedColor else { return }
         delegate?.didCreateHabit(
-            title: text, category: category, emoji: "📌", color: .clear,
-            schedule: schedule)
-        presentingViewController?.presentingViewController?.dismiss(
-            animated: true)
+            title: text,
+            category: category,
+            emoji: emojiCharacter,
+            color: selectedColor,
+            schedule: schedule
+        )
+        presentingViewController?.presentingViewController?.dismiss(animated: true)
     }
     
     private func updateCreateButtonState() {
         let isTextValid = !(habitNameTextField.text?.isEmpty ?? true)
         let isScheduleSelected = !schedule.isEmpty
+        let isEmojiSelected = selectedEmoji != nil
+        let isColorSelected = selectedColor != nil
         
-        if isTextValid && isScheduleSelected {
+        if isTextValid && isScheduleSelected && isEmojiSelected && isColorSelected {
             createButton.backgroundColor = UIColor(named: "CustomBlack")
             createButton.isEnabled = true
         } else {
@@ -296,4 +394,17 @@ extension HabitCreationViewController: ScheduleViewControllerDelegate {
         let sortedDays = Day.allCases.filter { days.contains($0) }
         return sortedDays.map { $0.shortName }.joined(separator: ", ")
     }
+}
+
+extension HabitCreationViewController: HabitEmojiSelectionDelegate, HabitColorSelectionDelegate {
+    func didSelectEmoji(_ emoji: String) {
+        selectedEmoji = emoji
+        updateCreateButtonState()
+    }
+    
+    func didSelectColor(_ color: UIColor) {
+        selectedColor = color
+        updateCreateButtonState()
+    }
+    
 }

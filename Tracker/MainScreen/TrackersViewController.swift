@@ -344,7 +344,7 @@ extension TrackersViewController: UICollectionViewDataSource,
         
         cell.setupCell(
             name: tracker.title,
-            color: UIColor(named: tracker.color) ?? .systemBlue,
+            color: tracker.color,
             emoji: Character(tracker.emoji),
             days: completedTrackers.filter { $0.trackerId == tracker.id }.count,
             trackerID: tracker.id,
@@ -452,14 +452,15 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 
 extension TrackersViewController: CreateDelegateProtocol {
     func didCreateEvent(
-        title: String, category: TrackerCategory, emoji: Character,
+        title: String,
+        category: TrackerCategory,
+        emoji: Character,
         color: UIColor
     ) {
-        let colorName = "CustomGray"
         let newEvent = Tracker(
             id: UUID(),
             title: title,
-            color: colorName,
+            color: color,
             emoji: String(emoji),
             schedule: []
         )
@@ -467,15 +468,18 @@ extension TrackersViewController: CreateDelegateProtocol {
             newEvent, toCategoryWithTitle: category.title)
         updateUIAfterTrackerCreation()
     }
+    
     func didCreateHabit(
-        title: String, category: TrackerCategory, emoji: Character,
-        color: UIColor, schedule: Set<Day>
+        title: String,
+        category: TrackerCategory,
+        emoji: Character,
+        color: UIColor,
+        schedule: Set<Day>
     ) {
-        let colorName = "CustomGray"
         let newTracker = Tracker(
             id: UUID(),
             title: title,
-            color: colorName,
+            color: color, 
             emoji: String(emoji),
             schedule: schedule
         )
@@ -489,7 +493,5 @@ extension TrackersViewController: CreateDelegateProtocol {
         filterTrackers(for: currentDate)
         updatePlaceholderVisibility()
         collectionView.reloadData()
-        
     }
-    
 }
