@@ -9,7 +9,7 @@ import UIKit
 
 final class HabitEmojiCell: UICollectionViewCell {
     private let emojiLabel = UILabel()
-    private let backgroundViewForSelection = UIView() 
+    private let backgroundViewForSelection = UIView()
     
     override init(frame: CGRect) {
         super.init(frame: frame)

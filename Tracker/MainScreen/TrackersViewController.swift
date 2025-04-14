@@ -479,7 +479,7 @@ extension TrackersViewController: CreateDelegateProtocol {
         let newTracker = Tracker(
             id: UUID(),
             title: title,
-            color: color, 
+            color: color,
             emoji: String(emoji),
             schedule: schedule
         )

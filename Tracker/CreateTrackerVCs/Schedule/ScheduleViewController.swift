@@ -62,6 +62,7 @@ final class ScheduleViewController: UIViewController {
         view.addSubview(doneButton)
         
         scheduleTableView.separatorStyle = .none
+        scheduleTableView.allowsSelection = false
         scheduleTableView.tableFooterView = UIView()
         
         NSLayoutConstraint.activate([
