@@ -163,7 +163,6 @@ final class EventCreationViewController: UIViewController {
     }
     
     private func setupUI() {
-        
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
@@ -184,7 +183,6 @@ final class EventCreationViewController: UIViewController {
         createButton.isEnabled = false
         
         NSLayoutConstraint.activate([
-            
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -196,7 +194,7 @@ final class EventCreationViewController: UIViewController {
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             
-            eventNameTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 24),
+            eventNameTextField.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 4),
             eventNameTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             eventNameTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             eventNameTextField.heightAnchor.constraint(equalToConstant: 75),
@@ -209,26 +207,24 @@ final class EventCreationViewController: UIViewController {
             emojiHeaderLabel.topAnchor.constraint(equalTo: settingsTableView.bottomAnchor, constant: 32),
             emojiHeaderLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 28),
             
-            emojiCollectionView.topAnchor.constraint(equalTo: emojiHeaderLabel.bottomAnchor, constant: 16),
+            emojiCollectionView.topAnchor.constraint(equalTo: emojiHeaderLabel.bottomAnchor, constant: 8),
             emojiCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             emojiCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             emojiCollectionView.heightAnchor.constraint(equalToConstant: 204),
             
-            colorHeaderLabel.topAnchor.constraint(equalTo: emojiCollectionView.bottomAnchor, constant: 16),
+            colorHeaderLabel.topAnchor.constraint(equalTo: emojiCollectionView.bottomAnchor, constant: -26),
             colorHeaderLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 28),
             
-            colorCollectionView.topAnchor.constraint(equalTo: colorHeaderLabel.bottomAnchor, constant: 16),
+            colorCollectionView.topAnchor.constraint(equalTo: colorHeaderLabel.bottomAnchor, constant: 15),
             colorCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             colorCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            colorCollectionView.heightAnchor.constraint(equalToConstant: 204), // Высота по умолчанию
+            colorCollectionView.heightAnchor.constraint(equalToConstant: 204),
             
-            buttonsStackView.topAnchor.constraint(equalTo: colorCollectionView.bottomAnchor, constant: 16),
+            buttonsStackView.topAnchor.constraint(equalTo: colorCollectionView.bottomAnchor, constant: 8),
             buttonsStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             buttonsStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             buttonsStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
             buttonsStackView.heightAnchor.constraint(equalToConstant: 60),
-            
-            cancelButton.widthAnchor.constraint(equalTo: createButton.widthAnchor),
         ])
     }
     
