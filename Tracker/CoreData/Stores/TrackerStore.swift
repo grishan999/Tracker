@@ -50,7 +50,7 @@ final class TrackerStore: NSObject {
             withRootObject: tracker.color,
             requiringSecureCoding: false
         )
-        trackerCoreData.schedule = tracker.schedule as NSObject
+        trackerCoreData.schedule = Array(tracker.schedule) as NSObject 
         trackerCoreData.category = category
         
         try context.save()

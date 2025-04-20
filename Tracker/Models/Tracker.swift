@@ -13,23 +13,24 @@ struct Tracker {
     let color: UIColor
     let emoji: String
     let schedule: Set<Day>
+    let category: TrackerCategory
     
-    // Обычный инициализатор
-    init(id: UUID, title: String, color: UIColor, emoji: String, schedule: Set<Day>) {
+    init(id: UUID, title: String, color: UIColor, emoji: String, schedule: Set<Day>, category: TrackerCategory) {
         self.id = id
         self.title = title
         self.color = color
         self.emoji = emoji
         self.schedule = schedule
+        self.category = category
     }
     
-    // Инициализатор из CoreData
     init?(from coreData: TrackerCoreData) {
         guard
             let id = coreData.id,
             let title = coreData.title,
             let emoji = coreData.emoji,
-            let scheduleData = coreData.schedule as? Set<Day>
+            let scheduleData = coreData.schedule as? Set<Day>,
+            let categoryCoreData = coreData.category
         else {
             return nil
         }
@@ -44,5 +45,10 @@ struct Tracker {
         } else {
             self.color = UIColor()
         }
+        
+        self.category = TrackerCategory(
+            title: categoryCoreData.title ?? "",
+            trackers: []
+        )
     }
 }

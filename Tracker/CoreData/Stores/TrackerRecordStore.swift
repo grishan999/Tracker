@@ -7,8 +7,8 @@
 import CoreData
 
 final class TrackerRecordStore: NSObject {
-    private let context: NSManagedObjectContext
-    private var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>!
+    let context: NSManagedObjectContext
+    var fetchedResultsController: NSFetchedResultsController<TrackerRecordCoreData>!
     
     weak var delegate: NSFetchedResultsControllerDelegate?
     
