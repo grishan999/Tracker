@@ -46,17 +46,17 @@ final class TrackerRecordStore: NSObject {
     }
     
     func fetchRecords(for trackerId: UUID) -> [TrackerRecord] {
-           guard let recordsCoreData = fetchedResultsController.fetchedObjects else { return [] }
-           
-           return recordsCoreData.compactMap { coreData in
-               guard let coreDataTrackerId = coreData.trackerId,
-                     coreDataTrackerId == trackerId,
-                     let date = coreData.date else {
-                   return nil
-               }
-               return TrackerRecord(trackerId: coreDataTrackerId, date: date)
-           }
-       }
+        guard let recordsCoreData = fetchedResultsController.fetchedObjects else { return [] }
+        
+        return recordsCoreData.compactMap { coreData in
+            guard let coreDataTrackerId = coreData.trackerId,
+                  coreDataTrackerId == trackerId,
+                  let date = coreData.date else {
+                return nil
+            }
+            return TrackerRecord(trackerId: coreDataTrackerId, date: date)
+        }
+    }
    
     
 }

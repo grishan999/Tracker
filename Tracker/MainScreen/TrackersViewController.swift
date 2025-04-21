@@ -350,10 +350,15 @@ extension TrackersViewController: UICollectionViewDataSource,
         return categories.filter { !$0.trackers.isEmpty }.count
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: TrackersCell.cellIdentifier, for: indexPath
-        ) as? TrackersCell else {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        cellForItemAt indexPath: IndexPath
+    ) -> UICollectionViewCell {
+        guard
+            let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: TrackersCell.cellIdentifier, for: indexPath
+            ) as? TrackersCell
+        else {
             fatalError("Unable to dequeue TrackersCell")
         }
         
@@ -363,21 +368,18 @@ extension TrackersViewController: UICollectionViewDataSource,
             Calendar.current.isDate(record.date, inSameDayAs: currentDate)
         }
 
-        // Для Event трекеров показываем 0 или 1, для Habit - реальное количество дней
-        let daysCount = tracker.schedule.isEmpty ?
-            (isCompletedToday ? 1 : 0) :
-            records.count
+        // Подсчет уникальных выполнений
+        let uniqueDays = Set(records.map { Calendar.current.startOfDay(for: $0.date) }).count
         
         let today = Calendar.current.startOfDay(for: Date())
         let cellDate = Calendar.current.startOfDay(for: currentDate)
         let isEnabled = cellDate <= today
         
-        
         cell.setupCell(
             name: tracker.title,
             color: tracker.color,
             emoji: Character(tracker.emoji),
-            days: daysCount,
+            days: tracker.schedule.isEmpty ? (isCompletedToday ? 1 : 0) : uniqueDays,
             trackerID: tracker.id,
             isCompletedToday: isCompletedToday,
             isEnabled: isEnabled,
@@ -425,13 +427,33 @@ extension TrackersViewController: TrackersCellDelegate {
         
         do {
             if isCompleted {
-                try trackerRecordStore.addRecord(trackerId: trackerID, date: date)
-            } 
+                // Проверяем, существует ли запись для этого трекера на выбранную дату
+                let records = trackerRecordStore.fetchRecords(for: trackerID)
+                if !records.contains(where: {
+                    Calendar.current.isDate($0.date, inSameDayAs: date)
+                }) {
+                    try trackerRecordStore.addRecord(trackerId: trackerID, date: date)
+                }
+            } else {
+                // Удаляем запись, если она существует
+                let records = trackerRecordStore.fetchRecords(for: trackerID)
+                if let recordToRemove = records.first(where: {
+                    Calendar.current.isDate($0.date, inSameDayAs: date)
+                }) {
+                    // Находим соответствующую запись в CoreData
+                    if let index = trackerRecordStore.fetchedResultsController.fetchedObjects?.firstIndex(where: {
+                        $0.trackerId == recordToRemove.trackerId && Calendar.current.isDate($0.date!, inSameDayAs: recordToRemove.date)
+                    }) {
+                        try trackerRecordStore.context.delete(trackerRecordStore.fetchedResultsController.object(at: IndexPath(row: index, section: 0)))
+                        try trackerRecordStore.context.save()
+                    }
+                }
+            }
             
-            try trackerRecordStore.fetchedResultsController.performFetch()
+            // Обновляем UI
             categories = trackerCategoryStore.fetchCategories()
             filterTrackers(for: currentDate)
-            
+            collectionView.reloadData()
         } catch {
             print("Error toggling completion: \(error)")
             if let indexPath = findIndexPath(for: trackerID) {

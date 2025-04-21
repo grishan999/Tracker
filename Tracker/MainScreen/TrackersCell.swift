@@ -199,14 +199,8 @@ final class TrackersCell: UICollectionViewCell {
         let isCurrentlyCompleted = (plusButton.image(for: .normal) == UIImage(named: "Done"))
         let newCompletionStatus = !isCurrentlyCompleted
         
-        // Мгновенно обновляем UI
+        // Мгновенно обновляем только состояние кнопки
         updateCompletionStatus(isCompletedToday: newCompletionStatus)
-        
-        // Для Event трекеров - всегда 0 или 1
-        // Для Habit - реальное количество выполненных дней
-        let currentDays = Int(countLabel.text?.components(separatedBy: " ").first ?? "0") ?? 0
-        let newDays = newCompletionStatus ? currentDays + 1 : max(0, currentDays - 1)
-        updateDays(days: newDays, isAddition: newCompletionStatus)
         
         // Сообщаем делегату об изменении
         delegate?.didToggleCompletion(for: trackerID, on: currentDate, isCompleted: newCompletionStatus)
