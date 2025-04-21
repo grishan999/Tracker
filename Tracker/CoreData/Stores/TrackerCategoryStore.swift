@@ -9,7 +9,7 @@ import CoreData
 
 final class TrackerCategoryStore: NSObject {
     private let context: NSManagedObjectContext
-    private var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>!
+    var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>!
     
     weak var delegate: NSFetchedResultsControllerDelegate?
     
@@ -46,15 +46,45 @@ final class TrackerCategoryStore: NSObject {
     }
     
     func fetchCategories() -> [TrackerCategory] {
-        guard let categoriesCoreData = fetchedResultsController.fetchedObjects else { return [] }
-        
-        return categoriesCoreData.compactMap { coreData -> TrackerCategory? in
-            guard let title = coreData.title else { return nil }
-            
-            let trackers = (coreData.trackers?.allObjects as? [TrackerCoreData])?
-                .compactMap { Tracker(from: $0) } ?? []
-            
-            return TrackerCategory(title: title, trackers: trackers)
-        }
-    }
-}
+           // Принудительно обновляем перед получением данных
+           try? fetchedResultsController.performFetch()
+           
+           guard let categoriesCoreData = fetchedResultsController.fetchedObjects else {
+               print("Нет данных в fetchedResultsController")
+               return []
+           }
+           
+           print("Найдено категорий в Core Data: \(categoriesCoreData.count)")
+           
+           let result = categoriesCoreData.compactMap { coreData -> TrackerCategory? in
+               guard let title = coreData.title else {
+                   print("Категория без названия")
+                   return nil
+               }
+               
+               let trackers = (coreData.trackers?.allObjects as? [TrackerCoreData])?
+                   .compactMap { Tracker(from: $0) } ?? []
+               
+               print("Категория: \(title), трекеров: \(trackers.count)")
+               return TrackerCategory(title: title, trackers: trackers)
+           }
+           
+           print("Итоговые категории: \(result.map { $0.title })")
+           return result
+       }
+    
+    func ensureCleaningCategoryExists() throws {
+           let request = TrackerCategoryCoreData.fetchRequest()
+           request.predicate = NSPredicate(format: "title == %@", "Уборка")
+           
+           if try context.count(for: request) == 0 {
+               let category = TrackerCategoryCoreData(context: context)
+               category.title = "Уборка"
+               try context.save()
+               
+               // Принудительно обновляем fetchedResultsController
+               try fetchedResultsController.performFetch()
+               print("Категория 'Уборка' создана и fetchedResultsController обновлен")
+           }
+       }
+  }

@@ -59,8 +59,8 @@ final class ScheduleCell: UITableViewCell {
         ])
     }
     
-    func configure(with title: String, isOn: Bool, isLastCell: Bool = false) {
-        titleLabel.text = title
+    func configure(with day: Day, isOn: Bool, isLastCell: Bool = false) {
+        titleLabel.text = day.localizedName 
         toggleSwitch.isOn = isOn
         separatorView.isHidden = isLastCell
         

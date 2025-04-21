@@ -6,7 +6,7 @@
 //
 
 import CoreData
-import Foundation
+import UIKit
 
 final class CoreDataSource {
     
@@ -40,4 +40,3 @@ final class CoreDataSource {
         private init() {}
     
 }
-

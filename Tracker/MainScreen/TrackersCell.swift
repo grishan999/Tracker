@@ -8,15 +8,18 @@
 import UIKit
 
 protocol TrackersCellDelegate: AnyObject {
-    func updateCount(cell: TrackersCell)
+    func didToggleCompletion(for trackerID: UUID, on date: Date, isCompleted: Bool)
 }
 
 final class TrackersCell: UICollectionViewCell {
     
     static let cellIdentifier = "cell"
     private(set) var trackerID: UUID?
+    private var isEvent: Bool = false
     
     weak var delegate: TrackersCellDelegate?
+    
+    private var currentDate: Date = Date()
     
     // MARK: - TrackerName
     private lazy var trackerNameView: UIView = {
@@ -143,42 +146,74 @@ final class TrackersCell: UICollectionViewCell {
     }
     
     func setupCell(
-        name: String, color: UIColor, emoji: Character, days: Int,
-        trackerID: UUID, isCompletedToday: Bool, isEnabled: Bool = true
+        name: String,
+        color: UIColor,
+        emoji: Character,
+        days: Int,
+        trackerID: UUID,
+        isCompletedToday: Bool,
+        isEnabled: Bool = true,
+        currentDate: Date = Date(),
+        isEvent: Bool // Добавляем параметр для определения типа трекера
     ) {
+        self.currentDate = currentDate
         plusButton.backgroundColor = color
         trackerNameView.backgroundColor = color
         emojiLabel.text = String(emoji)
         trackerNameLabel.text = name
-        
         self.trackerID = trackerID
+        self.isEvent = isEvent // Сохраняем тип трекера
+        
         countLabel.text = days.days()
-        updateCompletionStatus(
-            isCompletedToday: isCompletedToday, isEnabled: isEnabled)
+        updateCompletionStatus(isCompletedToday: isCompletedToday, isEnabled: isEnabled)
     }
     
     func updateDays(days: Int, isAddition: Bool, isEnabled: Bool = true) {
-        countLabel.text = days.days()
-        updateCompletionStatus(
-            isCompletedToday: isAddition, isEnabled: isEnabled)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            // Используем сохраненное значение isEvent
+            let displayDays: Int
+            if self.isEvent {
+                displayDays = isAddition ? 1 : 0
+            } else {
+                displayDays = max(days + (isAddition ? 1 : -1), 0)
+            }
+            self.countLabel.text = displayDays.days()
+            self.updateCompletionStatus(isCompletedToday: isAddition, isEnabled: isEnabled)
+        }
     }
     
-    func updateCompletionStatus(isCompletedToday: Bool, isEnabled: Bool = true)
-    {
-        let image =
-        isCompletedToday ? UIImage(named: "Done") : UIImage(named: "Plus")
-        plusButton.setImage(image, for: .normal)
-        plusButton.alpha = isCompletedToday ? 0.3 : 1.0
-        plusButton.isEnabled = isEnabled
+    func updateCompletionStatus(isCompletedToday: Bool, isEnabled: Bool = true) {
+        DispatchQueue.main.async { [weak self] in
+            let image = isCompletedToday ? UIImage(named: "Done") : UIImage(named: "Plus")
+            self?.plusButton.setImage(image, for: .normal)
+            self?.plusButton.alpha = isCompletedToday ? 0.3 : 1.0
+            self?.plusButton.isEnabled = isEnabled
+        }
     }
     
     @objc private func plusButtonTapped() {
+        guard let trackerID = trackerID else { return }
         
-        delegate?.updateCount(cell: self)
+        let isCurrentlyCompleted = (plusButton.image(for: .normal) == UIImage(named: "Done"))
+        let newCompletionStatus = !isCurrentlyCompleted
         
+        // Мгновенно обновляем UI
+        updateCompletionStatus(isCompletedToday: newCompletionStatus)
+        
+        // Для Event трекеров - всегда 0 или 1
+        // Для Habit - реальное количество выполненных дней
+        let currentDays = Int(countLabel.text?.components(separatedBy: " ").first ?? "0") ?? 0
+        let newDays = newCompletionStatus ? currentDays + 1 : max(0, currentDays - 1)
+        updateDays(days: newDays, isAddition: newCompletionStatus)
+        
+        // Сообщаем делегату об изменении
+        delegate?.didToggleCompletion(for: trackerID, on: currentDate, isCompleted: newCompletionStatus)
     }
-    
-}
+    }
+
+
 
 extension Int {
     func days() -> String {
