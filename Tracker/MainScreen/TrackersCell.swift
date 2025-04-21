@@ -154,7 +154,7 @@ final class TrackersCell: UICollectionViewCell {
         isCompletedToday: Bool,
         isEnabled: Bool = true,
         currentDate: Date = Date(),
-        isEvent: Bool // Добавляем параметр для определения типа трекера
+        isEvent: Bool
     ) {
         self.currentDate = currentDate
         plusButton.backgroundColor = color
@@ -162,7 +162,7 @@ final class TrackersCell: UICollectionViewCell {
         emojiLabel.text = String(emoji)
         trackerNameLabel.text = name
         self.trackerID = trackerID
-        self.isEvent = isEvent // Сохраняем тип трекера
+        self.isEvent = isEvent
         
         countLabel.text = days.days()
         updateCompletionStatus(isCompletedToday: isCompletedToday, isEnabled: isEnabled)
@@ -172,7 +172,6 @@ final class TrackersCell: UICollectionViewCell {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             
-            // Используем сохраненное значение isEvent
             let displayDays: Int
             if self.isEvent {
                 displayDays = isAddition ? 1 : 0
@@ -199,15 +198,11 @@ final class TrackersCell: UICollectionViewCell {
         let isCurrentlyCompleted = (plusButton.image(for: .normal) == UIImage(named: "Done"))
         let newCompletionStatus = !isCurrentlyCompleted
         
-        // Мгновенно обновляем только состояние кнопки
         updateCompletionStatus(isCompletedToday: newCompletionStatus)
         
-        // Сообщаем делегату об изменении
         delegate?.didToggleCompletion(for: trackerID, on: currentDate, isCompleted: newCompletionStatus)
     }
-    }
-
-
+}
 
 extension Int {
     func days() -> String {

@@ -18,8 +18,8 @@ protocol CreateDelegateProtocol: AnyObject {
 
 final class TrackersViewController: UIViewController {
     private let trackerStore = TrackerStore()
-       private let trackerRecordStore = TrackerRecordStore()
-       private let trackerCategoryStore = TrackerCategoryStore()
+    private let trackerRecordStore = TrackerRecordStore()
+    private let trackerCategoryStore = TrackerCategoryStore()
     
     private let datePicker = UIDatePicker()
     private let headerLabel = UILabel()
@@ -43,20 +43,13 @@ final class TrackersViewController: UIViewController {
         super.viewDidLoad()
         
         view.backgroundColor = .systemBackground
-        print("Начальное состояние:")
-            print("Категории: \(trackerCategoryStore.fetchCategories().map { $0.title })")
-            print("Трекеры: \(trackerStore.fetchTrackers().map { $0.title })")
-            
-            do {
-                try trackerCategoryStore.ensureCleaningCategoryExists()
-            } catch {
-                print("Ошибка при создании категории 'Уборка': \(error)")
-            }
-            
-            categories = trackerCategoryStore.fetchCategories()
-            filterTrackers(for: currentDate)
-            setupUI()
         
+        
+        try? trackerCategoryStore.ensureCleaningCategoryExists()
+        
+        categories = trackerCategoryStore.fetchCategories()
+        filterTrackers(for: currentDate)
+        setupUI()
     }
     
     private lazy var placeholderView: UIView = {
@@ -269,9 +262,8 @@ final class TrackersViewController: UIViewController {
         let weekday = calendar.component(.weekday, from: date)
         let isToday = calendar.isDate(date, inSameDayAs: Date())
         
-        // Принудительно обновляем данные
-        try? trackerCategoryStore.fetchedResultsController.performFetch()
-        try? trackerRecordStore.fetchedResultsController.performFetch()
+        try? trackerCategoryStore.fetchedResultsController?.performFetch()
+        try? trackerRecordStore.fetchedResultsController?.performFetch()
         
         let allTrackers = trackerStore.fetchTrackers()
         var categorizedTrackers: [String: [Tracker]] = [:]
@@ -280,13 +272,10 @@ final class TrackersViewController: UIViewController {
             let shouldShow: Bool
             
             if tracker.schedule.isEmpty {
-                // Для Event показываем только сегодня
                 shouldShow = isToday
             } else {
-                // Для Habit показываем по расписанию
                 shouldShow = tracker.schedule.contains { $0.calendarDayNumber == weekday }
             }
-            
             if shouldShow {
                 categorizedTrackers[tracker.category.title, default: []].append(tracker)
             }
@@ -367,8 +356,7 @@ extension TrackersViewController: UICollectionViewDataSource,
         let isCompletedToday = records.contains { record in
             Calendar.current.isDate(record.date, inSameDayAs: currentDate)
         }
-
-        // Подсчет уникальных выполнений
+        
         let uniqueDays = Set(records.map { Calendar.current.startOfDay(for: $0.date) }).count
         
         let today = Calendar.current.startOfDay(for: Date())
@@ -427,7 +415,6 @@ extension TrackersViewController: TrackersCellDelegate {
         
         do {
             if isCompleted {
-                // Проверяем, существует ли запись для этого трекера на выбранную дату
                 let records = trackerRecordStore.fetchRecords(for: trackerID)
                 if !records.contains(where: {
                     Calendar.current.isDate($0.date, inSameDayAs: date)
@@ -435,27 +422,29 @@ extension TrackersViewController: TrackersCellDelegate {
                     try trackerRecordStore.addRecord(trackerId: trackerID, date: date)
                 }
             } else {
-                // Удаляем запись, если она существует
                 let records = trackerRecordStore.fetchRecords(for: trackerID)
                 if let recordToRemove = records.first(where: {
                     Calendar.current.isDate($0.date, inSameDayAs: date)
                 }) {
-                    // Находим соответствующую запись в CoreData
-                    if let index = trackerRecordStore.fetchedResultsController.fetchedObjects?.firstIndex(where: {
-                        $0.trackerId == recordToRemove.trackerId && Calendar.current.isDate($0.date!, inSameDayAs: recordToRemove.date)
+                    guard let fetchedObjects = trackerRecordStore.fetchedResultsController?.fetchedObjects else { return }
+                    
+                    if let index = fetchedObjects.firstIndex(where: {
+                        $0.trackerId == recordToRemove.trackerId &&
+                        Calendar.current.isDate($0.date!, inSameDayAs: recordToRemove.date)
                     }) {
-                        try trackerRecordStore.context.delete(trackerRecordStore.fetchedResultsController.object(at: IndexPath(row: index, section: 0)))
-                        try trackerRecordStore.context.save()
+                        let object = trackerRecordStore.fetchedResultsController?.object(at: IndexPath(row: index, section: 0))
+                        if let object = object {
+                            trackerRecordStore.context.delete(object)
+                            try trackerRecordStore.context.save()
+                        }
                     }
                 }
             }
             
-            // Обновляем UI
             categories = trackerCategoryStore.fetchCategories()
             filterTrackers(for: currentDate)
             collectionView.reloadData()
         } catch {
-            print("Error toggling completion: \(error)")
             if let indexPath = findIndexPath(for: trackerID) {
                 collectionView.reloadItems(at: [indexPath])
             }
@@ -486,7 +475,7 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
         layout collectionViewLayout: UICollectionViewLayout,
         referenceSizeForHeaderInSection section: Int
     ) -> CGSize {
-        // Получаем текущие категории из TrackerCategoryStore
+        
         let categories = trackerCategoryStore.fetchCategories()
         
         if categories.isEmpty {
@@ -515,74 +504,70 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
 
 extension TrackersViewController: CreateDelegateProtocol {
     func didCreateEvent(
-           title: String,
-           category: TrackerCategory, // Этот параметр теперь игнорируется
-           emoji: Character,
-           color: UIColor
-       ) {
-           let newEvent = Tracker(
-               id: UUID(),
-               title: title,
-               color: color,
-               emoji: String(emoji),
-               schedule: [],
-               category: TrackerCategory(title: "Уборка", trackers: [])
-           )
-
-           do {
-               // Просто передаем любую строку, так как она игнорируется
-               try trackerStore.addTracker(newEvent, categoryTitle: "Уборка")
-               updateUIAfterTrackerCreation()
-               print("Создан новый трекер в категории 'Уборка'")
-           } catch {
-               print("Failed to add event: \(error)")
-           }
-       }
-
-       func didCreateHabit(
-           title: String,
-           category: TrackerCategory, // Этот параметр теперь игнорируется
-           emoji: Character,
-           color: UIColor,
-           schedule: Set<Day>
-       ) {
-           let newTracker = Tracker(
-               id: UUID(),
-               title: title,
-               color: color,
-               emoji: String(emoji),
-               schedule: schedule,
-               category: TrackerCategory(title: "Уборка", trackers: [])
-           )
-
-           do {
-               // Просто передаем любую строку, так как она игнорируется
-               try trackerStore.addTracker(newTracker, categoryTitle: "Уборка")
-               updateUIAfterTrackerCreation()
-               print("Создана новая привычка в категории 'Уборка'")
-           } catch {
-               print("Failed to add habit: \(error)")
-           }
-       }
+        title: String,
+        category: TrackerCategory,
+        emoji: Character,
+        color: UIColor
+    ) {
+        let newEvent = Tracker(
+            id: UUID(),
+            title: title,
+            color: color,
+            emoji: String(emoji),
+            schedule: [],
+            category: TrackerCategory(title: "Уборка", trackers: [])
+        )
+        
+        do {
+            try trackerStore.addTracker(newEvent, categoryTitle: "Уборка")
+            updateUIAfterTrackerCreation()
+            
+        } catch {
+            print("Failed to add event: \(error)")
+        }
+    }
+    
+    func didCreateHabit(
+        title: String,
+        category: TrackerCategory,
+        emoji: Character,
+        color: UIColor,
+        schedule: Set<Day>
+    ) {
+        let newTracker = Tracker(
+            id: UUID(),
+            title: title,
+            color: color,
+            emoji: String(emoji),
+            schedule: schedule,
+            category: TrackerCategory(title: "Уборка", trackers: [])
+        )
+        
+        do {
+            
+            try trackerStore.addTracker(newTracker, categoryTitle: "Уборка")
+            updateUIAfterTrackerCreation()
+            
+        } catch {
+            print("Failed to add habit: \(error)")
+        }
+    }
     
     private func updateUIAfterTrackerCreation() {
         DispatchQueue.main.async {
-            // 1. Обновляем данные
+            
             self.categories = self.trackerCategoryStore.fetchCategories()
             self.filterTrackers(for: self.currentDate)
             
-            // 2. Принудительное обновление layout
+            
             self.view.setNeedsLayout()
             self.view.layoutIfNeeded()
             
-            // 3. Полная перезагрузка коллекции
             self.collectionView.reloadData()
             self.collectionView.collectionViewLayout.invalidateLayout()
             
-            // 4. Обновляем плейсхолдер
             self.updatePlaceholderVisibility()
             
-            print("UI обновлен. Категории: \(self.categories.map { $0.title })")
         }
     }
 }

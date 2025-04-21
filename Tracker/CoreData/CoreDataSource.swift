@@ -10,33 +10,32 @@ import UIKit
 
 final class CoreDataSource {
     
+    private init() {}
+    
     static let shared = CoreDataSource()
     
     lazy var persistentContainer: NSPersistentContainer = {
-            let container = NSPersistentContainer(name: "TrackerModel")
-            container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-                if let error = error as NSError? {
-                    fatalError("Не удалось загрузить хранилище: \(error), \(error.userInfo)")
-                }
-            })
-            return container
-        }()
+        let container = NSPersistentContainer(name: "TrackerModel")
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                fatalError("Не удалось загрузить хранилище: \(error), \(error.userInfo)")
+            }
+        })
+        return container
+    }()
     
     var context: NSManagedObjectContext {
-            persistentContainer.viewContext
-        }
-
+        persistentContainer.viewContext
+    }
+    
     func saveContext() {
-            if context.hasChanges {
-                do {
-                    try context.save()
-                } catch {
-                    let nserror = error as NSError
-                    assertionFailure("Ошибка сохранения: \(nserror), \(nserror.userInfo)")
-                }
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                let nserror = error as NSError
+                assertionFailure("Ошибка сохранения: \(nserror), \(nserror.userInfo)")
             }
         }
-        
-        private init() {}
-    
+    }
 }
