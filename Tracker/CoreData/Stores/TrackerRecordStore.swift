@@ -22,22 +22,6 @@ final class TrackerRecordStore: NSObject {
         setupFetchedResultsController()
     }
     
-    private func setupFetchedResultsController() {
-        let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-        
-        let controller = NSFetchedResultsController(
-            fetchRequest: request,
-            managedObjectContext: context,
-            sectionNameKeyPath: nil,
-            cacheName: nil
-        )
-        
-        controller.delegate = delegate
-        try? controller.performFetch()
-        self.fetchedResultsController = controller
-    }
-    
     func addRecord(trackerId: UUID, date: Date) {
         let record = TrackerRecordCoreData(context: context)
         record.trackerId = trackerId
@@ -59,6 +43,22 @@ final class TrackerRecordStore: NSObject {
             
             return TrackerRecord(trackerId: coreDataTrackerId, date: date)
         }
+    }
+    
+    private func setupFetchedResultsController() {
+        let request: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+        
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        
+        controller.delegate = delegate
+        try? controller.performFetch()
+        self.fetchedResultsController = controller
     }
 }
 

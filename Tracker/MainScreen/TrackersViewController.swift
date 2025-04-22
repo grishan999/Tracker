@@ -249,7 +249,6 @@ final class TrackersViewController: UIViewController {
     
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
         let selectedDate = sender.date
-        print("Изменена дата на: \(selectedDate)")
         currentDate = selectedDate
         datePicker.date = selectedDate
         filterTrackers(for: selectedDate)
