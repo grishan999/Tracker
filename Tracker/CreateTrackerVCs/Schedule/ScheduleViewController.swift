@@ -23,11 +23,8 @@ final class ScheduleViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.isScrollEnabled = false
-        tableView.separatorInset = UIEdgeInsets(
-            top: 0, left: 16, bottom: 0, right: 16)
-        tableView.register(
-            ScheduleCell.self,
-            forCellReuseIdentifier: ScheduleCell.reuseIdentifier)
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        tableView.register(ScheduleCell.self, forCellReuseIdentifier: ScheduleCell.reuseIdentifier)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
@@ -38,8 +35,7 @@ final class ScheduleViewController: UIViewController {
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = UIColor(named: "CustomBlack")
-        button.addTarget(
-            self, action: #selector(doneButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         button.layer.cornerRadius = 16
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -47,13 +43,9 @@ final class ScheduleViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(
-            named: "CustomWhite")
-        
-        navigationController?.navigationBar.tintColor = UIColor(
-            named: "CustomBlack")
+        view.backgroundColor = UIColor(named: "CustomWhite")
+        navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
         navigationItem.title = "Расписание"
-        
         setupUI()
     }
     
@@ -62,26 +54,20 @@ final class ScheduleViewController: UIViewController {
         view.addSubview(doneButton)
         
         scheduleTableView.separatorStyle = .none
+        scheduleTableView.allowsSelection = false
         scheduleTableView.tableFooterView = UIView()
         
         NSLayoutConstraint.activate([
-            scheduleTableView.topAnchor.constraint(
-                equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            scheduleTableView.leadingAnchor.constraint(
-                equalTo: view.leadingAnchor, constant: 16),
-            scheduleTableView.trailingAnchor.constraint(
-                equalTo: view.trailingAnchor, constant: -16),
-            scheduleTableView.bottomAnchor.constraint(
-                equalTo: doneButton.topAnchor, constant: -16),
+            scheduleTableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+            scheduleTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            scheduleTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            scheduleTableView.bottomAnchor.constraint(equalTo: doneButton.topAnchor, constant: -16),
             scheduleTableView.heightAnchor.constraint(equalToConstant: 525),
             
-            doneButton.bottomAnchor.constraint(
-                equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            doneButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             doneButton.heightAnchor.constraint(equalToConstant: 60),
-            doneButton.leadingAnchor.constraint(
-                equalTo: view.leadingAnchor, constant: 20),
-            doneButton.trailingAnchor.constraint(
-                equalTo: view.trailingAnchor, constant: -20),
+            doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
         ])
     }
     
@@ -92,40 +78,34 @@ final class ScheduleViewController: UIViewController {
 }
 
 extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int)
-    -> Int
-    {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return Day.allCases.count
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
-    -> UITableViewCell
-    {
-        guard
-            let cell = tableView.dequeueReusableCell(
-                withIdentifier: ScheduleCell.reuseIdentifier, for: indexPath)
-                as? ScheduleCell
-        else {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: ScheduleCell.reuseIdentifier,
+            for: indexPath
+        ) as? ScheduleCell else {
             return UITableViewCell()
         }
         
         let day = Day.allCases[indexPath.row]
         let isLastCell = indexPath.row == Day.allCases.count - 1
-        cell.configure(
-            with: day.rawValue, isOn: selectedDays.contains(day),
-            isLastCell: isLastCell)
+        cell.configure(with: day, isOn: selectedDays.contains(day), isLastCell: isLastCell)
         
         cell.toggleSwitch.onTintColor = .systemBlue
         cell.toggleSwitch.tag = indexPath.row
         cell.toggleSwitch.addTarget(
-            self, action: #selector(switchValueChanged(_:)), for: .valueChanged)
+            self,
+            action: #selector(switchValueChanged(_:)),
+            for: .valueChanged
+        )
         
         return cell
     }
     
-    func tableView(
-        _ tableView: UITableView, heightForRowAt indexPath: IndexPath
-    ) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 75
     }
     
@@ -137,5 +117,4 @@ extension ScheduleViewController: UITableViewDataSource, UITableViewDelegate {
             selectedDays.remove(day)
         }
     }
-    
 }

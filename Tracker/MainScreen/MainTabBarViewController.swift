@@ -13,9 +13,9 @@ final class MainTabBarController: UITabBarController {
         setupTabs()
         customizeTabBar()
     }
-
+    
     private func setupTabs() {
-
+        
         let trackersVC = TrackersViewController()
         let trackersNav = UINavigationController(rootViewController: trackersVC)
         trackersNav.tabBarItem = UITabBarItem(
@@ -25,7 +25,7 @@ final class MainTabBarController: UITabBarController {
             selectedImage: UIImage(named: "AimBlue")?.withRenderingMode(
                 .alwaysOriginal)
         )
-
+        
         let statisticVC = StatisticViewController()
         let statisticNav = UINavigationController(
             rootViewController: statisticVC)
@@ -36,16 +36,16 @@ final class MainTabBarController: UITabBarController {
             selectedImage: UIImage(named: "RabbitBlue")?.withRenderingMode(
                 .alwaysOriginal)
         )
-
+        
         viewControllers = [trackersNav, statisticNav]
         selectedIndex = 0
     }
-
+    
     private func customizeTabBar() {
         tabBar.tintColor = UIColor(named: "CustomBlue")
         tabBar.unselectedItemTintColor = .gray
         tabBar.backgroundColor = .systemBackground
-
+        
         let topBorder = CALayer()
         topBorder.frame = CGRect(
             x: 0, y: 0, width: tabBar.frame.width, height: 0.5)

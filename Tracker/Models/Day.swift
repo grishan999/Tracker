@@ -7,37 +7,36 @@
 
 import Foundation
 
-enum Day: String, CaseIterable {
-    case Monday = "Понедельник"
-    case Tuesday = "Вторник"
-    case Wednesday = "Среда"
-    case Thursday = "Четверг"
-    case Friday = "Пятница"
-    case Saturday = "Суббота"
-    case Sunday = "Воскресенье"
+enum Day: Int, CaseIterable {
+    case monday = 1
+    case tuesday = 2
+    case wednesday = 3
+    case thursday = 4
+    case friday = 5
+    case saturday = 6
+    case sunday = 7
     
-    var shortName: String {
+    var localizedName: String {
         switch self {
-        case .Monday: return "Пн"
-        case .Tuesday: return "Вт"
-        case .Wednesday: return "Ср"
-        case .Thursday: return "Чт"
-        case .Friday: return "Пт"
-        case .Saturday: return "Сб"
-        case .Sunday: return "Вс"
+        case .monday: return "Понедельник"
+        case .tuesday: return "Вторник"
+        case .wednesday: return "Среда"
+        case .thursday: return "Четверг"
+        case .friday: return "Пятница"
+        case .saturday: return "Суббота"
+        case .sunday: return "Воскресенье"
         }
     }
     
     var calendarDayNumber: Int {
         switch self {
-        case .Sunday: return 1
-        case .Monday: return 2
-        case .Tuesday: return 3
-        case .Wednesday: return 4
-        case .Thursday: return 5
-        case .Friday: return 6
-        case .Saturday: return 7
+        case .sunday: return 1
+        case .monday: return 2
+        case .tuesday: return 3
+        case .wednesday: return 4
+        case .thursday: return 5
+        case .friday: return 6
+        case .saturday: return 7
         }
     }
-    
 }
