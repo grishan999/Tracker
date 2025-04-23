@@ -256,6 +256,7 @@ final class TrackersViewController: UIViewController {
         updatePlaceholderVisibility()
         collectionView.reloadData()
     }
+    
     private func filterTrackers(for date: Date) {
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: date)

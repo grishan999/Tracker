@@ -387,7 +387,7 @@ extension HabitCreationViewController: ScheduleViewControllerDelegate {
         }
         
         let sortedDays = Day.allCases.filter { days.contains($0) }
-        return sortedDays.map { $0.localizedName }.joined(separator: ", ")
+        return sortedDays.map { $0.shortName }.joined(separator: ", ")
     }
 }
 
