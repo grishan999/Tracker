@@ -60,17 +60,4 @@ final class TrackerCategoryStore: NSObject {
             return TrackerCategory(title: title, trackers: trackers)
         } ?? []
     }
-    
-    func ensureCleaningCategoryExists() {
-        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", "Уборка")
-        
-        let count = (try? context.count(for: request)) ?? 0
-        guard count == 0 else { return }
-        
-        let category = TrackerCategoryCoreData(context: context)
-        category.title = "Уборка"
-        try? context.save()
-        try? fetchedResultsController?.performFetch()
-    }
 }
