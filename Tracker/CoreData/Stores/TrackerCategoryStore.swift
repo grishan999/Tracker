@@ -60,3 +60,17 @@ final class TrackerCategoryStore: NSObject, TrackerCategoryStoreProtocol {
         } ?? []
     }
 }
+
+extension TrackerCategoryStore {
+    func editCategory(_ category: TrackerCategory, newTitle: String) {
+        guard let coreDataCategory = fetchedResultsController?.fetchedObjects?.first(where: { $0.title == category.title }) else { return }
+        coreDataCategory.title = newTitle
+        try? context.save()
+    }
+    
+    func deleteCategory(_ category: TrackerCategory) {
+        guard let coreDataCategory = fetchedResultsController?.fetchedObjects?.first(where: { $0.title == category.title }) else { return }
+        context.delete(coreDataCategory)
+        try? context.save()
+    }
+}

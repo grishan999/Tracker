@@ -8,6 +8,8 @@
 protocol TrackerCategoryStoreProtocol {
     func addCategory(title: String)
     func fetchCategories() -> [TrackerCategory]
+    func editCategory(_ category: TrackerCategory, newTitle: String)
+    func deleteCategory(_ category: TrackerCategory)
 }
 
 import UIKit
@@ -174,7 +176,13 @@ extension CategoryCreationViewController: UITableViewDelegate, UITableViewDataSo
         cell.configure(
             with: category,
             isSelected: isSelected,
-            isLastCell: isLastCell
+            isLastCell: isLastCell,
+            onEdit: { [weak self] in
+                self?.showEditCategoryScreen(category: category, index: indexPath.row)
+            },
+            onDelete: { [weak self] in
+                self?.viewModel.deleteCategory(at: indexPath.row)
+            }
         )
         
         return cell
@@ -216,5 +224,50 @@ extension CategoryCreationViewController: UITableViewDelegate, UITableViewDataSo
             cell.layer.cornerRadius = 0
         }
         cell.layer.masksToBounds = true
+    }
+}
+
+extension CategoryCreationViewController {
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        guard let cell = tableView.cellForRow(at: indexPath) as? CategoryCell,
+              let category = viewModel.getCategory(at: indexPath.row) else {
+            return nil
+        }
+        
+        let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .light))
+        blurView.frame = view.bounds
+        view.addSubview(blurView)
+        
+        cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ -> UIMenu? in
+            let edit = UIAction(title: "Редактировать") { [weak self] _ in
+                self?.showEditCategoryScreen(category: category, index: indexPath.row)
+                blurView.removeFromSuperview()
+                cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
+            }
+            
+            let delete = UIAction(title: "Удалить", attributes: .destructive) { [weak self] _ in
+                self?.viewModel.deleteCategory(at: indexPath.row)
+                blurView.removeFromSuperview()
+                cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
+            }
+            
+            return UIMenu(title: "", children: [edit, delete])
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, willEndContextMenuInteraction configuration: UIContextMenuConfiguration, animator: UIContextMenuInteractionAnimating?) {
+        view.subviews.filter { $0 is UIVisualEffectView }.forEach { $0.removeFromSuperview() }
+        tableView.visibleCells.forEach { $0.backgroundColor = UIColor(named: "CustomBackgroundDay") }
+    }
+    
+    private func showEditCategoryScreen(category: TrackerCategory, index: Int) {
+        let editVC = CustomizeCategoryViewController(
+            viewModel: viewModel,
+            categoryIndex: index,
+            initialTitle: category.title
+        )
+        navigationController?.pushViewController(editVC, animated: true)
     }
 }

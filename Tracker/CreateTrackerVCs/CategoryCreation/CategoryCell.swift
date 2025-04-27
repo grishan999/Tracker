@@ -10,6 +10,9 @@ import UIKit
 final class CategoryCell: UITableViewCell {
     static let reuseIdentifier = "CategoryCell"
     
+    private var onEdit: (() -> Void)?
+    private var onDelete: (() -> Void)?
+    
     private let titleLabel = UILabel()
     private let separatorView = UIView()
     
@@ -46,10 +49,25 @@ final class CategoryCell: UITableViewCell {
         ])
     }
     
-    func configure(with category: TrackerCategory, isSelected: Bool, isLastCell: Bool = false) {
+    func configure(with category: TrackerCategory, isSelected: Bool, isLastCell: Bool = false, onEdit: @escaping () -> Void, onDelete: @escaping () -> Void) {
         titleLabel.text = category.title
         accessoryType = isSelected ? .checkmark : .none
         separatorView.isHidden = isLastCell
-        
+        self.onEdit = onEdit
+        self.onDelete = onDelete
+    }
+    
+    func makeContextMenu() -> UIContextMenuConfiguration {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ -> UIMenu? in
+            let edit = UIAction(title: "Редактировать", image: UIImage(systemName: "pencil")) { _ in
+                self.onEdit?()
+            }
+            
+            let delete = UIAction(title: "Удалить", image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
+                self.onDelete?()
+            }
+            
+            return UIMenu(title: "", children: [edit, delete])
+        }
     }
 }
