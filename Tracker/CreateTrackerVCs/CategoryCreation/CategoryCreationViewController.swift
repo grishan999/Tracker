@@ -5,18 +5,16 @@
 //  Created by Ilya Grishanov on 24.04.2025.
 //
 
-protocol CategorySelectionDelegate: AnyObject {
-    func didSelectCategory(_ category: TrackerCategory)
+protocol TrackerCategoryStoreProtocol {
+    func addCategory(title: String)
+    func fetchCategories() -> [TrackerCategory]
 }
 
 import UIKit
 
 final class CategoryCreationViewController: UIViewController {
-    
-    weak var delegate: CategorySelectionDelegate?
-    private var categories: [TrackerCategory] = []
-    private var selectedCategory: TrackerCategory?
-    private let trackerCategoryStore = TrackerCategoryStore()
+    private let viewModel: CategoryCreationViewModel
+    private var onCategorySelected: ((TrackerCategory) -> Void)?
     
     private let starImage = UIImageView()
     private let questionLabel = UILabel()
@@ -51,6 +49,17 @@ final class CategoryCreationViewController: UIViewController {
         return tableView
     }()
     
+    init(viewModel: CategoryCreationViewModel = CategoryCreationViewModel(),
+            onCategorySelected: ((TrackerCategory) -> Void)? = nil) {
+           self.viewModel = viewModel
+           self.onCategorySelected = onCategorySelected
+           super.init(nibName: nil, bundle: nil)
+       }
+       
+       required init?(coder: NSCoder) {
+           fatalError("init(coder:) has not been implemented")
+       }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -58,7 +67,20 @@ final class CategoryCreationViewController: UIViewController {
         navigationItem.title = "Категория"
         
         setupUI()
-        loadCategories()
+        bindViewModel()
+    }
+    
+    private func bindViewModel() {
+        viewModel.updateCategories = { [weak self] categories in
+            self?.categoryTableView.reloadData()
+        }
+        
+        viewModel.updatePlaceholderVisibility = { [weak self] isEmpty in
+            self?.placeholderView.isHidden = !isEmpty
+            self?.categoryTableView.isHidden = isEmpty
+            
+            self?.view.layoutIfNeeded()
+        }
     }
     
     private func setupUI() {
@@ -66,8 +88,8 @@ final class CategoryCreationViewController: UIViewController {
         setupQuestionLabel()
         
         view.addSubview(placeholderView)
-        view.addSubview(addButton)
         view.addSubview(categoryTableView)
+        view.addSubview(addButton)
         
         categoryTableView.delegate = self
         categoryTableView.dataSource = self
@@ -86,6 +108,9 @@ final class CategoryCreationViewController: UIViewController {
             categoryTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             categoryTableView.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -16),
         ])
+        
+        placeholderView.isHidden = !viewModel.getCategories().isEmpty
+        categoryTableView.isHidden = viewModel.getCategories().isEmpty
     }
     
     private func setupStarImage() {
@@ -102,8 +127,10 @@ final class CategoryCreationViewController: UIViewController {
     }
     
     private func setupQuestionLabel() {
-        questionLabel.text = "Привычки и события можно объединить по смыслу"
+        questionLabel.text = "Привычки и события можно \n объединить по смыслу"
         questionLabel.font = UIFont(name: "YS Display Medium", size: 12)
+        questionLabel.numberOfLines = 2
+        questionLabel.textAlignment = .center
         questionLabel.textColor = UIColor(named: "CustomBlack")
         questionLabel.translatesAutoresizingMaskIntoConstraints = false
         placeholderView.addSubview(questionLabel)
@@ -115,31 +142,18 @@ final class CategoryCreationViewController: UIViewController {
         ])
     }
     
-    private func loadCategories() {
-        categories = trackerCategoryStore.fetchCategories()
-        updatePlaceholderVisibility()
-        categoryTableView.reloadData()
-    }
-    
-    private func updatePlaceholderVisibility() {
-        let isEmpty = categories.isEmpty
-        placeholderView.isHidden = !isEmpty
-        categoryTableView.isHidden = isEmpty
-    }
-    
     @objc private func addButtonTapped() {
-        let addCategoryVC = AddCategoryViewController()
-        addCategoryVC.delegate = self
+        let addCategoryVC = AddCategoryViewController { [weak self] title in
+            self?.viewModel.addCategory(title: title)
+        }
         let navController = UINavigationController(rootViewController: addCategoryVC)
         present(navController, animated: true)
     }
 }
 
 extension CategoryCreationViewController: UITableViewDelegate, UITableViewDataSource {
-    
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
+        return viewModel.getCategoriesCount()
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -150,9 +164,12 @@ extension CategoryCreationViewController: UITableViewDelegate, UITableViewDataSo
             return UITableViewCell()
         }
         
-        let category = categories[indexPath.row]
-        let isSelected = selectedCategory?.title == category.title
-        let isLastCell = indexPath.row == categories.count - 1
+        guard let category = viewModel.getCategory(at: indexPath.row) else {
+            return UITableViewCell()
+        }
+        
+        let isSelected = viewModel.isCategorySelected(at: indexPath.row)
+        let isLastCell = indexPath.row == viewModel.getCategoriesCount() - 1
         
         cell.configure(
             with: category,
@@ -168,18 +185,17 @@ extension CategoryCreationViewController: UITableViewDelegate, UITableViewDataSo
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-           tableView.deselectRow(at: indexPath, animated: true)
-           
-           let category = categories[indexPath.row]
-           selectedCategory = category
-           delegate?.didSelectCategory(category)
-           
-           tableView.reloadData()
-           
-           DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-               self.dismiss(animated: true)
-           }
-       }
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        if let category = viewModel.selectCategory(at: indexPath.row) {
+            onCategorySelected?(category)
+            tableView.reloadData()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                self.dismiss(animated: true)
+            }
+        }
+    }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         let totalRows = tableView.numberOfRows(inSection: indexPath.section)
@@ -188,27 +204,17 @@ extension CategoryCreationViewController: UITableViewDelegate, UITableViewDataSo
             cell.layer.cornerRadius = 16
             cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         }
-        
         else if indexPath.row == 0 {
             cell.layer.cornerRadius = 16
             cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         }
-
         else if indexPath.row == totalRows - 1 {
             cell.layer.cornerRadius = 16
             cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         }
-
         else {
             cell.layer.cornerRadius = 0
         }
         cell.layer.masksToBounds = true
-    }
-}
-
-extension CategoryCreationViewController: AddCategoryDelegate {
-    func didAddCategory(title: String) {
-        trackerCategoryStore.addCategory(title: title)
-        loadCategories()
     }
 }

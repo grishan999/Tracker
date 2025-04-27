@@ -122,13 +122,6 @@ final class HabitCreationViewController: UIViewController {
         return stackView
     }()
     
-    private lazy var emojiCollectionView: HabitEmojiCollection = {
-        let collectionView = HabitEmojiCollection(emojies: emojies)
-        collectionView.selectionDelegate = self
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        return collectionView
-    }()
-    
     private lazy var emojiHeaderLabel: UILabel = {
         let label = UILabel()
         label.text = "Emoji"
@@ -137,6 +130,13 @@ final class HabitCreationViewController: UIViewController {
         return label
     }()
     
+    private lazy var emojiCollectionView: HabitEmojiCollection = {
+        let collectionView = HabitEmojiCollection(emojies: emojies)
+        collectionView.selectionDelegate = self
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
+
     private lazy var colorCollectionView: HabitColorCollection = {
         let collectionView = HabitColorCollection(colors: colors)
         collectionView.selectionDelegate = self
@@ -257,6 +257,17 @@ final class HabitCreationViewController: UIViewController {
         )
         presentingViewController?.presentingViewController?.dismiss(animated: true)
     }
+    private func presentCategorySelection() {
+        let categoryVC = CategoryCreationViewController { [weak self] category in
+            self?.selectedCategory = category
+            if let cell = self?.settingsTableView.cellForRow(at: IndexPath(row: 0, section: 0)) {
+                cell.detailTextLabel?.text = category.title
+            }
+            self?.updateCreateButtonState()
+        }
+        let navController = UINavigationController(rootViewController: categoryVC)
+        present(navController, animated: true)
+    }
     
     private func updateCreateButtonState() {
         let isTextValid = !(habitNameTextField.text?.isEmpty ?? true)
@@ -354,21 +365,18 @@ extension HabitCreationViewController: UITableViewDelegate,
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-           tableView.deselectRow(at: indexPath, animated: true)
-           
-           if indexPath.row == 0 {
-               let categoryVC = CategoryCreationViewController()
-               categoryVC.delegate = self
-               let navController = UINavigationController(rootViewController: categoryVC)
-               present(navController, animated: true)
-           } else if indexPath.row == 1 {
-               let scheduleVC = ScheduleViewController()
-               scheduleVC.delegate = self
-               scheduleVC.selectedDays = schedule
-               let navController = UINavigationController(rootViewController: scheduleVC)
-               present(navController, animated: true)
-           }
-       }
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        if indexPath.row == 0 {
+            presentCategorySelection()
+        } else if indexPath.row == 1 {
+            let scheduleVC = ScheduleViewController()
+            scheduleVC.delegate = self
+            scheduleVC.selectedDays = schedule
+            let navController = UINavigationController(rootViewController: scheduleVC)
+            present(navController, animated: true)
+        }
+    }
 }
 
 extension HabitCreationViewController: ScheduleViewControllerDelegate {
@@ -394,32 +402,17 @@ extension HabitCreationViewController: ScheduleViewControllerDelegate {
     }
 }
 
-extension HabitCreationViewController: HabitEmojiSelectionDelegate, HabitColorSelectionDelegate {
+
+extension HabitCreationViewController: HabitEmojiSelectionDelegate {
     func didSelectEmoji(_ emoji: String) {
         selectedEmoji = emoji
         updateCreateButtonState()
     }
-    
+}
+
+extension HabitCreationViewController: HabitColorSelectionDelegate {
     func didSelectColor(_ color: UIColor) {
         selectedColor = color
         updateCreateButtonState()
-    }
-    
-}
-
-extension HabitCreationViewController: CategorySelectionDelegate {
-    func didSelectCategory(_ category: TrackerCategory) {
-        self.selectedCategory = category
-        if let cell = settingsTableView.cellForRow(at: IndexPath(row: 0, section: 0)) {
-            cell.detailTextLabel?.text = category.title
-        }
-        updateCreateButtonState()
-    }
-    
-    private func presentCategorySelection() {
-        let categoryVC = CategoryCreationViewController()
-        categoryVC.delegate = self
-        let navController = UINavigationController(rootViewController: categoryVC)
-        present(navController, animated: true)
     }
 }

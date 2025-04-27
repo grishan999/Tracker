@@ -327,16 +327,13 @@ extension EventCreationViewController: UITableViewDelegate,
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        
-        if indexPath.row == 0 {
-            let categoryVC = CategoryCreationViewController()
-            categoryVC.delegate = self
-            let navController = UINavigationController(rootViewController: categoryVC)
-            present(navController, animated: true)
-        }
-    }
-}
+           tableView.deselectRow(at: indexPath, animated: true)
+           
+           if indexPath.row == 0 {
+               presentCategorySelection()
+           }
+       }
+   }
 
 extension EventCreationViewController: EventEmojiSelectionDelegate, EventColorSelectionDelegate {
     func didSelectEmoji(_ emoji: String) {
@@ -351,10 +348,15 @@ extension EventCreationViewController: EventEmojiSelectionDelegate, EventColorSe
     
 }
 
-extension EventCreationViewController: CategorySelectionDelegate {
-    func didSelectCategory(_ category: TrackerCategory) {
-        selectedCategory = category
-        settingsTableView.reloadData()
-        updateCreateButtonState()
+extension EventCreationViewController {
+    private func presentCategorySelection() {
+        let categoryVC = CategoryCreationViewController { [weak self] category in
+            self?.selectedCategory = category
+            self?.settingsTableView.reloadData()
+            self?.updateCreateButtonState()
+            self?.dismiss(animated: true)
+        }
+        let navController = UINavigationController(rootViewController: categoryVC)
+        present(navController, animated: true)
     }
 }

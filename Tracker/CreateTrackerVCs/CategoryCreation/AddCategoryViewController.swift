@@ -13,8 +13,7 @@ protocol AddCategoryDelegate: AnyObject {
 import UIKit
 
 final class AddCategoryViewController: UIViewController {
-    
-    weak var delegate: AddCategoryDelegate?
+    private let onAddCategory: (String) -> Void
     
     private lazy var textField: UITextField = {
         let field = UITextField()
@@ -39,6 +38,15 @@ final class AddCategoryViewController: UIViewController {
         return button
     }()
     
+    init(onAddCategory: @escaping (String) -> Void) {
+        self.onAddCategory = onAddCategory
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -52,7 +60,6 @@ final class AddCategoryViewController: UIViewController {
         view.addSubview(addButton)
         
         NSLayoutConstraint.activate([
-            
             textField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -67,9 +74,7 @@ final class AddCategoryViewController: UIViewController {
     
     @objc private func addButtonTapped() {
         guard let text = textField.text, !text.isEmpty else { return }
-        delegate?.didAddCategory(title: text)
+        onAddCategory(text)
         dismiss(animated: true)
     }
 }
-
-

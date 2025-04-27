@@ -7,8 +7,7 @@
 
 import CoreData
 
-final class TrackerCategoryStore: NSObject {
-    
+final class TrackerCategoryStore: NSObject, TrackerCategoryStoreProtocol {
     private let context: NSManagedObjectContext
     private(set) var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>?
     
