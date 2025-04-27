@@ -51,13 +51,5 @@ final class CategoryCell: UITableViewCell {
         accessoryType = isSelected ? .checkmark : .none
         separatorView.isHidden = isLastCell
         
-        layer.cornerRadius = 0
-        layer.maskedCorners = []
-        
-        if isLastCell {
-            layer.cornerRadius = 16
-            layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-            layer.masksToBounds = true
-        }
     }
 }

@@ -182,16 +182,24 @@ extension CategoryCreationViewController: UITableViewDelegate, UITableViewDataSo
        }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        let isFirstCell = indexPath.row == 0
-        let isLastCell = indexPath.row == categories.count - 1
+        let totalRows = tableView.numberOfRows(inSection: indexPath.section)
         
-        if isFirstCell {
+        if totalRows == 1 {
+            cell.layer.cornerRadius = 16
+            cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        }
+        
+        else if indexPath.row == 0 {
+            cell.layer.cornerRadius = 16
             cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        }
+
+        else if indexPath.row == totalRows - 1 {
             cell.layer.cornerRadius = 16
-        } else if isLastCell {
             cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-            cell.layer.cornerRadius = 16
-        } else {
+        }
+
+        else {
             cell.layer.cornerRadius = 0
         }
         cell.layer.masksToBounds = true
