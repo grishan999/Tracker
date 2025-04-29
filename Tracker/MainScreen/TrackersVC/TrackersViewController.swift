@@ -18,8 +18,6 @@ protocol CreateDelegateProtocol: AnyObject {
 
 final class TrackersViewController: UIViewController {
     private let trackerStore = TrackerStore()
-    private let trackerRecordStore = TrackerRecordStore()
-    private let trackerCategoryStore = TrackerCategoryStore()
     
     private let datePicker = UIDatePicker()
     private let headerLabel = UILabel()
@@ -27,17 +25,21 @@ final class TrackersViewController: UIViewController {
     private let starImage = UIImageView()
     private let questionLabel = UILabel()
     
-    private lazy var cellWidth = ceil(
-        (UIScreen.main.bounds.width - sideInset * 2 - 10) / 2)
-    private let cellHeight: CGFloat = 148
-    private let sideInset: CGFloat = 16
-    private let minimumCellSpacing: CGFloat = 9
-    
-    private var categories: [TrackerCategory] = []
     private var hiddenCategories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
     
-    private var currentDate: Date = Calendar.current.startOfDay(for: Date())
+    var currentDate: Date = Calendar.current.startOfDay(for: Date())
+    
+    lazy var cellWidth = ceil(
+        (UIScreen.main.bounds.width - sideInset * 2 - 10) / 2)
+    let cellHeight: CGFloat = 148
+    let sideInset: CGFloat = 16
+    let minimumCellSpacing: CGFloat = 9
+    
+    let trackerRecordStore = TrackerRecordStore()
+    let trackerCategoryStore = TrackerCategoryStore()
+    
+    var categories: [TrackerCategory] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -321,91 +323,6 @@ final class TrackersViewController: UIViewController {
     
 }
 
-extension TrackersViewController: UICollectionViewDataSource,
-                                  UICollectionViewDelegate
-{
-    func collectionView(
-        _ collectionView: UICollectionView,
-        numberOfItemsInSection section: Int
-    ) -> Int {
-        let nonEmptyCategories = categories.filter { !$0.trackers.isEmpty }
-        return nonEmptyCategories[section].trackers.count
-    }
-    
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return categories.filter { !$0.trackers.isEmpty }.count
-    }
-    
-    func collectionView(
-        _ collectionView: UICollectionView,
-        cellForItemAt indexPath: IndexPath
-    ) -> UICollectionViewCell {
-        guard
-            let cell = collectionView.dequeueReusableCell(
-                withReuseIdentifier: TrackersCell.cellIdentifier, for: indexPath
-            ) as? TrackersCell
-        else {
-            fatalError("Unable to dequeue TrackersCell")
-        }
-        
-        let tracker = categories[indexPath.section].trackers[indexPath.item]
-        let records = trackerRecordStore.fetchRecords(for: tracker.id)
-        let isCompletedToday = records.contains { record in
-            Calendar.current.isDate(record.date, inSameDayAs: currentDate)
-        }
-        
-        let uniqueDays = Set(records.map { Calendar.current.startOfDay(for: $0.date) }).count
-        
-        let today = Calendar.current.startOfDay(for: Date())
-        let cellDate = Calendar.current.startOfDay(for: currentDate)
-        let isEnabled = cellDate <= today
-        
-        cell.setupCell(
-            name: tracker.title,
-            color: tracker.color,
-            emoji: Character(tracker.emoji),
-            days: tracker.schedule.isEmpty ? (isCompletedToday ? 1 : 0) : uniqueDays,
-            trackerID: tracker.id,
-            isCompletedToday: isCompletedToday,
-            isEnabled: isEnabled,
-            currentDate: currentDate,
-            isEvent: tracker.schedule.isEmpty
-        )
-        
-        cell.delegate = self
-        return cell
-    }
-    
-    func collectionView(
-        _ collectionView: UICollectionView,
-        viewForSupplementaryElementOfKind kind: String,
-        at indexPath: IndexPath
-    ) -> UICollectionReusableView {
-        switch kind {
-        case UICollectionView.elementKindSectionHeader:
-            guard
-                let headerView =
-                    collectionView.dequeueReusableSupplementaryView(
-                        ofKind: kind,
-                        withReuseIdentifier: HeaderCategoryView
-                            .headerIdentifier,
-                        for: indexPath
-                    ) as? HeaderCategoryView
-            else {
-                return UICollectionReusableView()
-            }
-            
-            let nonEmptyCategories = categories.filter { !$0.trackers.isEmpty }
-            headerView.titleLabel.text =
-            nonEmptyCategories[indexPath.section].title
-            return headerView
-            
-        default:
-            fatalError("Unexpected supplementary view kind: \(kind)")
-        }
-    }
-}
-
 extension TrackersViewController: TrackersCellDelegate {
     func didToggleCompletion(for trackerID: UUID, on date: Date, isCompleted: Bool) {
         guard Calendar.current.startOfDay(for: date) <= Calendar.current.startOfDay(for: Date()) else { return }
@@ -455,47 +372,6 @@ extension TrackersViewController: TrackersCellDelegate {
             }
         }
         return nil
-    }
-}
-
-extension TrackersViewController: UICollectionViewDelegateFlowLayout {
-    func collectionView(
-        _ collectionView: UICollectionView,
-        layout collectionViewLayout: UICollectionViewLayout,
-        sizeForItemAt indexPath: IndexPath
-    ) -> CGSize {
-        return CGSize(width: cellWidth, height: cellHeight)
-    }
-    
-    func collectionView(
-        _ collectionView: UICollectionView,
-        layout collectionViewLayout: UICollectionViewLayout,
-        referenceSizeForHeaderInSection section: Int
-    ) -> CGSize {
-        
-        let categories = trackerCategoryStore.fetchCategories()
-        
-        if categories.isEmpty {
-            return .zero
-        }
-        
-        return CGSize(width: collectionView.frame.width, height: 46)
-    }
-    
-    func collectionView(
-        _ collectionView: UICollectionView,
-        layout collectionViewLayout: UICollectionViewLayout,
-        insetForSectionAt section: Int
-    ) -> UIEdgeInsets {
-        UIEdgeInsets(top: 0, left: sideInset, bottom: 0, right: sideInset)
-    }
-    
-    func collectionView(
-        _ collectionView: UICollectionView,
-        layout collectionViewLayout: UICollectionViewLayout,
-        minimumInteritemSpacingForSectionAt section: Int
-    ) -> CGFloat {
-        minimumCellSpacing
     }
 }
 
