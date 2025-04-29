@@ -44,9 +44,6 @@ final class TrackersViewController: UIViewController {
         
         view.backgroundColor = .systemBackground
         
-        
-        try? trackerCategoryStore.ensureCleaningCategoryExists()
-        
         categories = trackerCategoryStore.fetchCategories()
         filterTrackers(for: currentDate)
         setupUI()
@@ -515,13 +512,12 @@ extension TrackersViewController: CreateDelegateProtocol {
             color: color,
             emoji: String(emoji),
             schedule: [],
-            category: TrackerCategory(title: "Уборка", trackers: [])
+            category: category
         )
         
         do {
-            try trackerStore.addTracker(newEvent, categoryTitle: "Уборка")
+            try trackerStore.addTracker(newEvent, categoryTitle: category.title)
             updateUIAfterTrackerCreation()
-            
         } catch {
             print("Failed to add event: \(error)")
         }
@@ -540,14 +536,12 @@ extension TrackersViewController: CreateDelegateProtocol {
             color: color,
             emoji: String(emoji),
             schedule: schedule,
-            category: TrackerCategory(title: "Уборка", trackers: [])
+            category: category
         )
         
         do {
-            
-            try trackerStore.addTracker(newTracker, categoryTitle: "Уборка")
+            try trackerStore.addTracker(newTracker, categoryTitle: category.title)
             updateUIAfterTrackerCreation()
-            
         } catch {
             print("Failed to add habit: \(error)")
         }
@@ -555,19 +549,10 @@ extension TrackersViewController: CreateDelegateProtocol {
     
     private func updateUIAfterTrackerCreation() {
         DispatchQueue.main.async {
-            
             self.categories = self.trackerCategoryStore.fetchCategories()
             self.filterTrackers(for: self.currentDate)
-            
-            
-            self.view.setNeedsLayout()
-            self.view.layoutIfNeeded()
-            
             self.collectionView.reloadData()
-            self.collectionView.collectionViewLayout.invalidateLayout()
-            
             self.updatePlaceholderVisibility()
-            
         }
     }
 }

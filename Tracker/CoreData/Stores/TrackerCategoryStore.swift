@@ -7,8 +7,7 @@
 
 import CoreData
 
-final class TrackerCategoryStore: NSObject {
-    
+final class TrackerCategoryStore: NSObject, TrackerCategoryStoreProtocol {
     private let context: NSManagedObjectContext
     private(set) var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData>?
     
@@ -60,17 +59,18 @@ final class TrackerCategoryStore: NSObject {
             return TrackerCategory(title: title, trackers: trackers)
         } ?? []
     }
-    
-    func ensureCleaningCategoryExists() {
-        let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", "Уборка")
-        
-        let count = (try? context.count(for: request)) ?? 0
-        guard count == 0 else { return }
-        
-        let category = TrackerCategoryCoreData(context: context)
-        category.title = "Уборка"
+}
+
+extension TrackerCategoryStore {
+    func editCategory(_ category: TrackerCategory, newTitle: String) {
+        guard let coreDataCategory = fetchedResultsController?.fetchedObjects?.first(where: { $0.title == category.title }) else { return }
+        coreDataCategory.title = newTitle
         try? context.save()
-        try? fetchedResultsController?.performFetch()
+    }
+    
+    func deleteCategory(_ category: TrackerCategory) {
+        guard let coreDataCategory = fetchedResultsController?.fetchedObjects?.first(where: { $0.title == category.title }) else { return }
+        context.delete(coreDataCategory)
+        try? context.save()
     }
 }
