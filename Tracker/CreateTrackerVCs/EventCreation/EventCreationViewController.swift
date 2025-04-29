@@ -256,13 +256,10 @@ final class EventCreationViewController: UIViewController {
         let isEmojiSelected = selectedEmoji != nil
         let isColorSelected = selectedColor != nil
         
-        if isTextValid && isCategorySelected && isEmojiSelected && isColorSelected {
-            createButton.backgroundColor = UIColor(named: "CustomBlack")
-            createButton.isEnabled = true
-        } else {
-            createButton.backgroundColor = UIColor(named: "CustomGray")
-            createButton.isEnabled = false
-        }
+        let isFormValid = isTextValid && isCategorySelected && isEmojiSelected && isColorSelected
+
+        createButton.backgroundColor = isFormValid ? .customBlack : .customGray
+        createButton.isEnabled = isFormValid
     }
 }
 

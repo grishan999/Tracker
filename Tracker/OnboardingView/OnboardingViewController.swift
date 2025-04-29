@@ -6,7 +6,7 @@
 //
 import UIKit
 
-class OnboardingViewController: UIPageViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
+final class OnboardingViewController: UIPageViewController, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
     
     private lazy var goFurtherButton: UIButton = {
         let button = UIButton(type: .custom)

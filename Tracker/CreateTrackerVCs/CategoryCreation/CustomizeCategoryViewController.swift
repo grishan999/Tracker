@@ -44,7 +44,9 @@ final class CustomizeCategoryViewController: UIViewController {
         self.categoryIndex = categoryIndex
         self.initialTitle = initialTitle
         super.init(nibName: nil, bundle: nil)
-        
+    }
+    
+    private func setupNavigationItem() {
         navigationItem.hidesBackButton = true
         navigationItem.leftBarButtonItem = nil
         navigationItem.rightBarButtonItem = nil

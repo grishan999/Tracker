@@ -51,8 +51,10 @@ final class CategoryCreationViewController: UIViewController {
         return tableView
     }()
     
-    init(viewModel: CategoryCreationViewModel = CategoryCreationViewModel(),
-            onCategorySelected: ((TrackerCategory) -> Void)? = nil) {
+    init(
+            viewModel: CategoryCreationViewModel = CategoryCreationViewModel(),
+            onCategorySelected: ((TrackerCategory) -> Void)?
+        ) {
            self.viewModel = viewModel
            self.onCategorySelected = onCategorySelected
            super.init(nibName: nil, bundle: nil)
