@@ -16,14 +16,11 @@ final class TrackerStore: NSObject {
     }
     
     func addTracker(_ tracker: Tracker, categoryTitle: String) throws {
-        let categoryStore = TrackerCategoryStore(context: context)
-        try? categoryStore.ensureCleaningCategoryExists()
-        
         let request: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", "Уборка")
+        request.predicate = NSPredicate(format: "title == %@", categoryTitle)
         
         guard let category = try? context.fetch(request).first else {
-            throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Категория 'Уборка' не найдена"])
+            throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Категория '\(categoryTitle)' не найдена"])
         }
         
         let trackerCoreData = TrackerCoreData(context: context)

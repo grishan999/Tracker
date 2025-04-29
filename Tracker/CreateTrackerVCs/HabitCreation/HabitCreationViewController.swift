@@ -19,8 +19,7 @@ final class HabitCreationViewController: UIViewController {
     
     weak var delegate: CreateDelegateProtocol?
     
-    private var category: TrackerCategory = TrackerCategory(
-        title: "Уборка", trackers: [])
+    private var selectedCategory: TrackerCategory?
     private var schedule: Set<Day> = []
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
@@ -123,13 +122,6 @@ final class HabitCreationViewController: UIViewController {
         return stackView
     }()
     
-    private lazy var emojiCollectionView: HabitEmojiCollection = {
-        let collectionView = HabitEmojiCollection(emojies: emojies)
-        collectionView.selectionDelegate = self
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        return collectionView
-    }()
-    
     private lazy var emojiHeaderLabel: UILabel = {
         let label = UILabel()
         label.text = "Emoji"
@@ -138,6 +130,13 @@ final class HabitCreationViewController: UIViewController {
         return label
     }()
     
+    private lazy var emojiCollectionView: HabitEmojiCollection = {
+        let collectionView = HabitEmojiCollection(emojies: emojies)
+        collectionView.selectionDelegate = self
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
+
     private lazy var colorCollectionView: HabitColorCollection = {
         let collectionView = HabitColorCollection(colors: colors)
         collectionView.selectionDelegate = self
@@ -239,18 +238,35 @@ final class HabitCreationViewController: UIViewController {
     }
     
     @objc private func createButtonTapped() {
-        guard let text = habitNameTextField.text, !text.isEmpty else { return }
-        guard !schedule.isEmpty else { return }
-        guard let selectedEmoji = selectedEmoji, let emojiCharacter = selectedEmoji.first else { return }
-        guard let selectedColor = selectedColor else { return }
+        guard let habitName = habitNameTextField.text, !habitName.isEmpty else {
+            return
+        }
+        
+        guard let category = selectedCategory else {
+            return
+        }
+        
+        guard let selectedEmoji = selectedEmoji, let selectedColor = selectedColor else { return }
+        
         delegate?.didCreateHabit(
-            title: text,
+            title: habitName,
             category: category,
-            emoji: emojiCharacter,
+            emoji: Character(selectedEmoji),
             color: selectedColor,
-            schedule: schedule
+            schedule: schedule 
         )
         presentingViewController?.presentingViewController?.dismiss(animated: true)
+    }
+    private func presentCategorySelection() {
+        let categoryVC = CategoryCreationViewController { [weak self] category in
+            self?.selectedCategory = category
+            if let cell = self?.settingsTableView.cellForRow(at: IndexPath(row: 0, section: 0)) {
+                cell.detailTextLabel?.text = category.title
+            }
+            self?.updateCreateButtonState()
+        }
+        let navController = UINavigationController(rootViewController: categoryVC)
+        present(navController, animated: true)
     }
     
     private func updateCreateButtonState() {
@@ -278,18 +294,15 @@ extension HabitCreationViewController: UITableViewDelegate,
         return tableViewCells.count
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
-    -> UITableViewCell
-    {
-        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
-        cell.accessoryType = .disclosureIndicator
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+           let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
+           cell.accessoryType = .disclosureIndicator
+           
+           cell.textLabel?.text = tableViewCells[indexPath.row]
+           if indexPath.row == 0 {
+               cell.detailTextLabel?.text = selectedCategory?.title 
+           }
         
-        cell.textLabel?.text = tableViewCells[indexPath.row]
-        if indexPath.row == 0 {
-            cell.detailTextLabel?.text = category.title
-        } else if indexPath.row == 1 {
-            cell.detailTextLabel?.text = formatScheduleText(days: schedule)
-        }
         
         cell.detailTextLabel?.textColor = UIColor(named: "CustomGray")
         cell.textLabel?.font = .systemFont(ofSize: 17, weight: .regular)
@@ -351,18 +364,16 @@ extension HabitCreationViewController: UITableViewDelegate,
         tableView.separatorStyle = .none
     }
     
-    func tableView(
-        _ tableView: UITableView, didSelectRowAt indexPath: IndexPath
-    ) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
         if indexPath.row == 0 {
+            presentCategorySelection()
         } else if indexPath.row == 1 {
             let scheduleVC = ScheduleViewController()
             scheduleVC.delegate = self
             scheduleVC.selectedDays = schedule
-            let navController = UINavigationController(
-                rootViewController: scheduleVC)
+            let navController = UINavigationController(rootViewController: scheduleVC)
             present(navController, animated: true)
         }
     }
@@ -391,15 +402,17 @@ extension HabitCreationViewController: ScheduleViewControllerDelegate {
     }
 }
 
-extension HabitCreationViewController: HabitEmojiSelectionDelegate, HabitColorSelectionDelegate {
+
+extension HabitCreationViewController: HabitEmojiSelectionDelegate {
     func didSelectEmoji(_ emoji: String) {
         selectedEmoji = emoji
         updateCreateButtonState()
     }
-    
+}
+
+extension HabitCreationViewController: HabitColorSelectionDelegate {
     func didSelectColor(_ color: UIColor) {
         selectedColor = color
         updateCreateButtonState()
     }
-    
 }

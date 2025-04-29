@@ -17,10 +17,7 @@ import UIKit
 final class EventCreationViewController: UIViewController {
     
     weak var delegate: CreateDelegateProtocol?
-    
-    private var category: TrackerCategory = TrackerCategory(
-        title: "Уборка", trackers: [])
-    
+    private var selectedCategory: TrackerCategory?
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
     
@@ -237,15 +234,12 @@ final class EventCreationViewController: UIViewController {
     }
     
     @objc private func createButtonTapped() {
-        guard let eventName = eventNameTextField.text, !eventName.isEmpty else {
+        guard let eventName = eventNameTextField.text, !eventName.isEmpty,
+              let category = selectedCategory,
+              let selectedEmoji = selectedEmoji,
+              let selectedColor = selectedColor else {
             return
         }
-        
-        guard !category.title.isEmpty else {
-            return
-        }
-        
-        guard let selectedEmoji = selectedEmoji, let selectedColor = selectedColor else { return }
         
         delegate?.didCreateEvent(
             title: eventName,
@@ -258,14 +252,14 @@ final class EventCreationViewController: UIViewController {
     
     private func updateCreateButtonState() {
         let isTextValid = !(eventNameTextField.text?.isEmpty ?? true)
+        let isCategorySelected = selectedCategory != nil
+        let isEmojiSelected = selectedEmoji != nil
+        let isColorSelected = selectedColor != nil
         
-        if isTextValid {
-            createButton.backgroundColor = UIColor(named: "CustomBlack")
-            createButton.isEnabled = true
-        } else {
-            createButton.backgroundColor = UIColor(named: "CustomGray")
-            createButton.isEnabled = false
-        }
+        let isFormValid = isTextValid && isCategorySelected && isEmojiSelected && isColorSelected
+
+        createButton.backgroundColor = isFormValid ? .customBlack : .customGray
+        createButton.isEnabled = isFormValid
     }
 }
 
@@ -278,15 +272,13 @@ extension EventCreationViewController: UITableViewDelegate,
         return tableViewCells.count
     }
     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
-    -> UITableViewCell
-    {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
         cell.accessoryType = .disclosureIndicator
         
         cell.textLabel?.text = tableViewCells[indexPath.row]
         if indexPath.row == 0 {
-            cell.detailTextLabel?.text = category.title
+            cell.detailTextLabel?.text = selectedCategory?.title
         }
         
         cell.detailTextLabel?.textColor = UIColor(named: "CustomGray")
@@ -330,7 +322,15 @@ extension EventCreationViewController: UITableViewDelegate,
     ) -> CGFloat {
         return 75
     }
-}
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+           tableView.deselectRow(at: indexPath, animated: true)
+           
+           if indexPath.row == 0 {
+               presentCategorySelection()
+           }
+       }
+   }
 
 extension EventCreationViewController: EventEmojiSelectionDelegate, EventColorSelectionDelegate {
     func didSelectEmoji(_ emoji: String) {
@@ -343,4 +343,17 @@ extension EventCreationViewController: EventEmojiSelectionDelegate, EventColorSe
         updateCreateButtonState()
     }
     
+}
+
+extension EventCreationViewController {
+    private func presentCategorySelection() {
+        let categoryVC = CategoryCreationViewController { [weak self] category in
+            self?.selectedCategory = category
+            self?.settingsTableView.reloadData()
+            self?.updateCreateButtonState()
+            self?.dismiss(animated: true)
+        }
+        let navController = UINavigationController(rootViewController: categoryVC)
+        present(navController, animated: true)
+    }
 }
