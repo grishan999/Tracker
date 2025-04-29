@@ -17,7 +17,7 @@ protocol CreateDelegateProtocol: AnyObject {
 }
 
 final class TrackersViewController: UIViewController {
-    private let trackerStore = TrackerStore()
+    let trackerStore = TrackerStore()
     
     private let datePicker = UIDatePicker()
     private let headerLabel = UILabel()
@@ -182,6 +182,8 @@ final class TrackersViewController: UIViewController {
                     equalTo: searchBar.centerYAnchor),
             ])
             
+            textField.delegate = self
+            
             if let glassIconView = textField.leftView as? UIImageView {
                 glassIconView.image = glassIconView.image?.withRenderingMode(
                     .alwaysTemplate)
@@ -231,12 +233,6 @@ final class TrackersViewController: UIViewController {
         ])
     }
     
-    private func updatePlaceholderVisibility() {
-        let hasVisibleTrackers = categories.contains { !$0.trackers.isEmpty }
-        placeholderView.isHidden = hasVisibleTrackers
-        collectionView.isHidden = !hasVisibleTrackers
-        
-    }
     
     @objc func addTrackerButtonTapped() {
         let typeCreationVC = TypeCreationViewController()
@@ -319,6 +315,13 @@ final class TrackersViewController: UIViewController {
         }
         
         categories = newCategories
+    }
+    
+    func updatePlaceholderVisibility() {
+        let hasVisibleTrackers = categories.contains { !$0.trackers.isEmpty }
+        placeholderView.isHidden = hasVisibleTrackers
+        collectionView.isHidden = !hasVisibleTrackers
+        
     }
     
 }
@@ -430,5 +433,61 @@ extension TrackersViewController: CreateDelegateProtocol {
             self.collectionView.reloadData()
             self.updatePlaceholderVisibility()
         }
+    }
+}
+
+extension TrackersViewController: UITextFieldDelegate {
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let currentText = textField.text ?? ""
+        guard let stringRange = Range(range, in: currentText) else { return false }
+        let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+        
+        filterTrackers(for: currentDate, with: updatedText)
+        return true
+    }
+    
+    func textFieldShouldClear(_ textField: UITextField) -> Bool {
+        filterTrackers(for: currentDate)
+        return true
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
+    
+    private func filterTrackers(for date: Date, with searchText: String = "") {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        let isToday = calendar.isDate(date, inSameDayAs: Date())
+        
+        try? trackerCategoryStore.fetchedResultsController?.performFetch()
+        try? trackerRecordStore.fetchedResultsController?.performFetch()
+        
+        let allTrackers = trackerStore.fetchTrackers()
+        var categorizedTrackers: [String: [Tracker]] = [:]
+        
+        for tracker in allTrackers {
+            let shouldShowByDate: Bool
+            if tracker.schedule.isEmpty {
+                shouldShowByDate = isToday
+            } else {
+                shouldShowByDate = tracker.schedule.contains { $0.calendarDayNumber == weekday }
+            }
+            
+            let shouldShowBySearch = searchText.isEmpty ||
+            tracker.title.lowercased().contains(searchText.lowercased())
+            
+            if shouldShowByDate && shouldShowBySearch {
+                categorizedTrackers[tracker.category.title, default: []].append(tracker)
+            }
+        }
+        
+        categories = categorizedTrackers.map {
+            TrackerCategory(title: $0.key, trackers: $0.value)
+        }.sorted { $0.title < $1.title }
+        
+        updatePlaceholderVisibility()
+        collectionView.reloadData()
     }
 }
