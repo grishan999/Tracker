@@ -52,17 +52,17 @@ final class CategoryCreationViewController: UIViewController {
     }()
     
     init(
-            viewModel: CategoryCreationViewModel = CategoryCreationViewModel(),
-            onCategorySelected: ((TrackerCategory) -> Void)?
-        ) {
-           self.viewModel = viewModel
-           self.onCategorySelected = onCategorySelected
-           super.init(nibName: nil, bundle: nil)
-       }
-       
-       required init?(coder: NSCoder) {
-           fatalError("init(coder:) has not been implemented")
-       }
+        viewModel: CategoryCreationViewModel = CategoryCreationViewModel(),
+        onCategorySelected: ((TrackerCategory) -> Void)?
+    ) {
+        self.viewModel = viewModel
+        self.onCategorySelected = onCategorySelected
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -250,9 +250,7 @@ extension CategoryCreationViewController {
             }
             
             let delete = UIAction(title: "Удалить", attributes: .destructive) { [weak self] _ in
-                self?.viewModel.deleteCategory(at: indexPath.row)
-                blurView.removeFromSuperview()
-                cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
+                self?.showDeleteAlert(for: category, at: indexPath.row, blurView: blurView)
             }
             
             return UIMenu(title: "", children: [edit, delete])
@@ -271,5 +269,38 @@ extension CategoryCreationViewController {
             initialTitle: category.title
         )
         navigationController?.pushViewController(editVC, animated: true)
+    }
+    
+    private func showDeleteAlert(for category: TrackerCategory, at index: Int, blurView: UIVisualEffectView) {
+        let alert = UIAlertController(
+            title: nil,
+            message: "Эта категория точно не нужна?",
+            preferredStyle: .actionSheet
+        )
+        
+        let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+            
+            self.viewModel.deleteCategory(at: index)
+            
+            blurView.removeFromSuperview()
+            
+            self.viewModel.loadCategories()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Отмена", style: .cancel) { _ in
+            blurView.removeFromSuperview()
+        }
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        if let popoverController = alert.popoverPresentationController {
+            popoverController.sourceView = self.view
+            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
+            popoverController.permittedArrowDirections = []
+        }
+        
+        present(alert, animated: true, completion: nil)
     }
 }

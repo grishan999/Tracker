@@ -19,7 +19,7 @@ final class CategoryCreationViewModel {
         loadCategories()
     }
     
-    private func loadCategories() {
+    func loadCategories() {
         categories = trackerCategoryStore.fetchCategories()
         updateCategories?(categories)
         updatePlaceholderVisibility?(categories.isEmpty)
@@ -62,18 +62,18 @@ final class CategoryCreationViewModel {
             index < categories.count else { return }
         let category = categories[index]
         trackerCategoryStore.editCategory(category, newTitle: newTitle)
-        loadCategories() 
+        loadCategories()
         
         if selectedCategory?.title == category.title {
             selectedCategory = TrackerCategory(title: newTitle, trackers: category.trackers)
         }
     }
-      
-      func deleteCategory(at index: Int) {
-          guard
+    
+    func deleteCategory(at index: Int) {
+        guard
             index < categories.count else { return }
-          let category = categories[index]
-          trackerCategoryStore.deleteCategory(category)
-          loadCategories()
-      }
-  }
+        let category = categories[index]
+        trackerCategoryStore.deleteCategory(category)
+        loadCategories()
+    }
+}

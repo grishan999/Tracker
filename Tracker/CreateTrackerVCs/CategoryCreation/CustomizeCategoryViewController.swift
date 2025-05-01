@@ -60,6 +60,7 @@ final class CustomizeCategoryViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         updateDoneButtonState()
+        setupNavigationItem()
     }
     
     private func setupUI() {
