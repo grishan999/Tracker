@@ -92,37 +92,32 @@ extension TrackersViewController: UICollectionViewDataSource,
     }
     
     func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
-            let category = categories[indexPath.section]
-            let tracker = category.trackers[indexPath.row]
+        let category = categories[indexPath.section]
+        let tracker = category.trackers[indexPath.row]
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ -> UIMenu? in
+            guard let self = self else { return nil }
             
-            return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ -> UIMenu? in
-                guard let self = self else { return nil }
-                
-                let pinTitle = tracker.isPinned ? "Открепить" : "Закрепить"
-                let pinAction = UIAction(title: pinTitle) { _ in
-                    self.togglePin(for: tracker.id)
-                }
-                
-                let editAction = UIAction(title: "Редактировать") { _ in
-                    // Реализация редактирования
-                    print("Редактировать трекер: \(tracker.title)")
-                }
-                
-                let deleteAction = UIAction(title: "Удалить", attributes: .destructive) { _ in
-                    // Реализация удаления
-                    print("Удалить трекер: \(tracker.title)")
-                }
-                
-                return UIMenu(title: "", children: [pinAction, editAction, deleteAction])
+            let pinTitle = tracker.isPinned ? "Открепить" : "Закрепить"
+            let pinAction = UIAction(title: pinTitle) { _ in
+                self.togglePin(for: tracker.id)
             }
+            
+            let editAction = UIAction(title: "Редактировать") { _ in
+                // Реализация редактирования
+                print("Редактировать трекер: \(tracker.title)")
+            }
+            
+            
+            let deleteAction = UIAction(title: "Удалить", attributes: .destructive) { _ in
+                self.showDeleteAlert(for: tracker, at: indexPath)
+            }
+            
+            return UIMenu(title: "", children: [pinAction, editAction, deleteAction])
         }
         
-        func collectionView(_ collectionView: UICollectionView, willPerformPreviewActionForMenuWith configuration: UIContextMenuConfiguration, animator: UIContextMenuInteractionCommitAnimating) {
-            animator.addCompletion {
-                // Действие при подтверждении
-            }
-        }
-    
+        
+        
+    }
     
 }
-

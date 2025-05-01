@@ -110,4 +110,15 @@ final class TrackerStore: NSObject {
             trackerToUpdate.isPinned = !trackerToUpdate.isPinned
             try context.save()
         }
+    
+    func deleteTracker(with id: UUID) throws {
+         let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+         
+         let results = try context.fetch(request)
+         guard let trackerToDelete = results.first else { return }
+         
+         context.delete(trackerToDelete)
+         try context.save()
+     }
 }

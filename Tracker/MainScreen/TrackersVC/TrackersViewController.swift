@@ -50,15 +50,7 @@ final class TrackersViewController: UIViewController {
         filterTrackers(for: currentDate)
         setupUI()
     }
-    
-    private lazy var placeholderView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = true
-        return view
-    }()
-    
-    private lazy var collectionView: UICollectionView = {
+    lazy var trackersCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(
             frame: .zero, collectionViewLayout: layout)
@@ -76,6 +68,14 @@ final class TrackersViewController: UIViewController {
             withReuseIdentifier: HeaderCategoryView.headerIdentifier)
         return collectionView
     }()
+    
+    private lazy var placeholderView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
+        return view
+    }()
+    
     
     private func setupUI() {
         setupNavBarItems()
@@ -97,17 +97,17 @@ final class TrackersViewController: UIViewController {
     }
     
     private func setupCollectionView() {
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(collectionView)
+        trackersCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(trackersCollectionView)
         
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(
+            trackersCollectionView.topAnchor.constraint(
                 equalTo: searchBar.bottomAnchor, constant: 10),
-            collectionView.leadingAnchor.constraint(
+            trackersCollectionView.leadingAnchor.constraint(
                 equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(
+            trackersCollectionView.trailingAnchor.constraint(
                 equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            trackersCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
     }
     
@@ -249,7 +249,7 @@ final class TrackersViewController: UIViewController {
         filterTrackers(for: selectedDate)
         
         updatePlaceholderVisibility()
-        collectionView.reloadData()
+        trackersCollectionView.reloadData()
     }
     
     private func filterTrackers(for date: Date, with searchText: String = "") {
@@ -296,7 +296,7 @@ final class TrackersViewController: UIViewController {
         }
         
         updatePlaceholderVisibility()
-        collectionView.reloadData()
+        trackersCollectionView.reloadData()
     }
     
     private func completeTracker(with id: UUID, on date: Date) {
@@ -331,11 +331,11 @@ final class TrackersViewController: UIViewController {
         
         categories = newCategories
     }
-    
+
     func updatePlaceholderVisibility() {
         let hasVisibleTrackers = categories.contains { !$0.trackers.isEmpty }
         placeholderView.isHidden = hasVisibleTrackers
-        collectionView.isHidden = !hasVisibleTrackers
+        trackersCollectionView.isHidden = !hasVisibleTrackers
     }
     
     func togglePin(for trackerID: UUID) {
@@ -344,7 +344,7 @@ final class TrackersViewController: UIViewController {
             // Обновляем данные и интерфейс
             categories = trackerCategoryStore.fetchCategories()
             filterTrackers(for: currentDate)
-            collectionView.reloadData()
+            trackersCollectionView.reloadData()
         } catch {
             print("Ошибка при переключении закрепления: \(error)")
         }
@@ -386,10 +386,10 @@ extension TrackersViewController: TrackersCellDelegate {
             
             categories = trackerCategoryStore.fetchCategories()
             filterTrackers(for: currentDate)
-            collectionView.reloadData()
+            trackersCollectionView.reloadData()
         } catch {
             if let indexPath = findIndexPath(for: trackerID) {
-                collectionView.reloadItems(at: [indexPath])
+                trackersCollectionView.reloadItems(at: [indexPath])
             }
         }
     }
@@ -456,7 +456,7 @@ extension TrackersViewController: CreateDelegateProtocol {
         DispatchQueue.main.async {
             self.categories = self.trackerCategoryStore.fetchCategories()
             self.filterTrackers(for: self.currentDate)
-            self.collectionView.reloadData()
+            self.trackersCollectionView.reloadData()
             self.updatePlaceholderVisibility()
         }
     }
