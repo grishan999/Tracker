@@ -104,10 +104,8 @@ extension TrackersViewController: UICollectionViewDataSource,
             }
             
             let editAction = UIAction(title: "Редактировать") { _ in
-                // Реализация редактирования
-                print("Редактировать трекер: \(tracker.title)")
+                self.showEditScreen(for: tracker, at: indexPath)
             }
-            
             
             let deleteAction = UIAction(title: "Удалить", attributes: .destructive) { _ in
                 self.showDeleteAlert(for: tracker, at: indexPath)
@@ -115,9 +113,19 @@ extension TrackersViewController: UICollectionViewDataSource,
             
             return UIMenu(title: "", children: [pinAction, editAction, deleteAction])
         }
-        
-        
-        
+    }
+    private func showEditScreen(for tracker: Tracker, at indexPath: IndexPath) {
+        let category = categories[indexPath.section]
+        let records = trackerRecordStore.fetchRecords(for: tracker.id)
+        let daysCount = records.count
+        let editVC = TrackerReductionViewController(
+            trackerToEdit: tracker,
+            category: category,
+            daysCount: daysCount
+        )
+        editVC.delegate = self
+        let navController = UINavigationController(rootViewController: editVC)
+        present(navController, animated: true)
     }
     
 }

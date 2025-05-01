@@ -101,24 +101,55 @@ final class TrackerStore: NSObject {
     }
     
     func togglePin(for trackerID: UUID) throws {
-            let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
-            request.predicate = NSPredicate(format: "id == %@", trackerID as CVarArg)
-            
-            let results = try context.fetch(request)
-            guard let trackerToUpdate = results.first else { return }
-            
-            trackerToUpdate.isPinned = !trackerToUpdate.isPinned
-            try context.save()
-        }
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        request.predicate = NSPredicate(format: "id == %@", trackerID as CVarArg)
+        
+        let results = try context.fetch(request)
+        guard let trackerToUpdate = results.first else { return }
+        
+        trackerToUpdate.isPinned = !trackerToUpdate.isPinned
+        try context.save()
+    }
     
     func deleteTracker(with id: UUID) throws {
-         let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
-         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-         
-         let results = try context.fetch(request)
-         guard let trackerToDelete = results.first else { return }
-         
-         context.delete(trackerToDelete)
-         try context.save()
-     }
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        let results = try context.fetch(request)
+        guard let trackerToDelete = results.first else { return }
+        
+        context.delete(trackerToDelete)
+        try context.save()
+    }
+    
+    func updateTracker(
+        with id: UUID,
+        newTitle: String,
+        newEmoji: String,
+        newColor: UIColor,
+        newSchedule: Set<Day>,
+        newCategory: String
+    ) throws {
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        let results = try context.fetch(request)
+        guard let trackerToUpdate = results.first else {
+            throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Трекер не найден"])
+        }
+        
+        trackerToUpdate.title = newTitle
+        trackerToUpdate.emoji = newEmoji
+        trackerToUpdate.color = newColor.hexString
+        trackerToUpdate.schedule = convertScheduleToCoreData(schedule: Array(newSchedule))
+        
+        let categoryRequest = NSFetchRequest<TrackerCategoryCoreData>(entityName: "TrackerCategoryCoreData")
+        categoryRequest.predicate = NSPredicate(format: "title == %@", newCategory)
+        
+        if let newCategory = try context.fetch(categoryRequest).first {
+            trackerToUpdate.category = newCategory
+        }
+        
+        try context.save()
+    }
 }

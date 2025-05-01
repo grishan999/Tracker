@@ -50,6 +50,7 @@ final class TrackersViewController: UIViewController {
         filterTrackers(for: currentDate)
         setupUI()
     }
+    
     lazy var trackersCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         let collectionView = UICollectionView(
@@ -252,53 +253,6 @@ final class TrackersViewController: UIViewController {
         trackersCollectionView.reloadData()
     }
     
-    private func filterTrackers(for date: Date, with searchText: String = "") {
-        let calendar = Calendar.current
-        let weekday = calendar.component(.weekday, from: date)
-        let isToday = calendar.isDate(date, inSameDayAs: Date())
-        
-        try? trackerCategoryStore.fetchedResultsController?.performFetch()
-        try? trackerRecordStore.fetchedResultsController?.performFetch()
-        
-        let allTrackers = trackerStore.fetchTrackers()
-        var categorizedTrackers: [String: [Tracker]] = [:]
-        
-        // Сначала добавляем закрепленные трекеры
-        let pinnedTrackers = allTrackers.filter { $0.isPinned }
-        for tracker in pinnedTrackers {
-            categorizedTrackers["Закрепленные", default: []].append(tracker)
-        }
-        
-        // Затем остальные трекеры
-        for tracker in allTrackers where !tracker.isPinned {
-            let shouldShowByDate: Bool
-            if tracker.schedule.isEmpty {
-                shouldShowByDate = isToday
-            } else {
-                shouldShowByDate = tracker.schedule.contains { $0.calendarDayNumber == weekday }
-            }
-            
-            let shouldShowBySearch = searchText.isEmpty ||
-            tracker.title.lowercased().contains(searchText.lowercased())
-            
-            if shouldShowByDate && shouldShowBySearch {
-                categorizedTrackers[tracker.category.title, default: []].append(tracker)
-            }
-        }
-        
-        // Сортируем категории, закрепленные идут первыми
-        categories = categorizedTrackers.map {
-            TrackerCategory(title: $0.key, trackers: $0.value)
-        }.sorted {
-            if $0.title == "Закрепленные" { return true }
-            if $1.title == "Закрепленные" { return false }
-            return $0.title < $1.title
-        }
-        
-        updatePlaceholderVisibility()
-        trackersCollectionView.reloadData()
-    }
-    
     private func completeTracker(with id: UUID, on date: Date) {
         let record = TrackerRecord(trackerId: id, date: date)
         completedTrackers.append(record)
@@ -331,7 +285,7 @@ final class TrackersViewController: UIViewController {
         
         categories = newCategories
     }
-
+    
     func updatePlaceholderVisibility() {
         let hasVisibleTrackers = categories.contains { !$0.trackers.isEmpty }
         placeholderView.isHidden = hasVisibleTrackers
@@ -341,7 +295,6 @@ final class TrackersViewController: UIViewController {
     func togglePin(for trackerID: UUID) {
         do {
             try trackerStore.togglePin(for: trackerID)
-            // Обновляем данные и интерфейс
             categories = trackerCategoryStore.fetchCategories()
             filterTrackers(for: currentDate)
             trackersCollectionView.reloadData()
@@ -350,58 +303,50 @@ final class TrackersViewController: UIViewController {
         }
     }
     
-}
-
-extension TrackersViewController: TrackersCellDelegate {
-    func didToggleCompletion(for trackerID: UUID, on date: Date, isCompleted: Bool) {
-        guard Calendar.current.startOfDay(for: date) <= Calendar.current.startOfDay(for: Date()) else { return }
+    func filterTrackers(for date: Date, with searchText: String = "") {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        let isToday = calendar.isDate(date, inSameDayAs: Date())
         
-        do {
-            if isCompleted {
-                let records = trackerRecordStore.fetchRecords(for: trackerID)
-                if !records.contains(where: {
-                    Calendar.current.isDate($0.date, inSameDayAs: date)
-                }) {
-                    try trackerRecordStore.addRecord(trackerId: trackerID, date: date)
-                }
+        try? trackerCategoryStore.fetchedResultsController?.performFetch()
+        try? trackerRecordStore.fetchedResultsController?.performFetch()
+        
+        let allTrackers = trackerStore.fetchTrackers()
+        var categorizedTrackers: [String: [Tracker]] = [:]
+        
+        let pinnedTrackers = allTrackers.filter { $0.isPinned }
+        for tracker in pinnedTrackers {
+            categorizedTrackers["Закрепленные", default: []].append(tracker)
+        }
+        
+        for tracker in allTrackers where !tracker.isPinned {
+            let shouldShowByDate: Bool
+            if tracker.schedule.isEmpty {
+                shouldShowByDate = isToday
             } else {
-                let records = trackerRecordStore.fetchRecords(for: trackerID)
-                if let recordToRemove = records.first(where: {
-                    Calendar.current.isDate($0.date, inSameDayAs: date)
-                }) {
-                    guard let fetchedObjects = trackerRecordStore.fetchedResultsController?.fetchedObjects else { return }
-                    
-                    if let index = fetchedObjects.firstIndex(where: {
-                        $0.trackerId == recordToRemove.trackerId &&
-                        Calendar.current.isDate($0.date!, inSameDayAs: recordToRemove.date)
-                    }) {
-                        let object = trackerRecordStore.fetchedResultsController?.object(at: IndexPath(row: index, section: 0))
-                        if let object = object {
-                            trackerRecordStore.context.delete(object)
-                            try trackerRecordStore.context.save()
-                        }
-                    }
-                }
+                shouldShowByDate = tracker.schedule.contains { $0.calendarDayNumber == weekday }
             }
             
-            categories = trackerCategoryStore.fetchCategories()
-            filterTrackers(for: currentDate)
-            trackersCollectionView.reloadData()
-        } catch {
-            if let indexPath = findIndexPath(for: trackerID) {
-                trackersCollectionView.reloadItems(at: [indexPath])
+            let shouldShowBySearch = searchText.isEmpty ||
+            tracker.title.lowercased().contains(searchText.lowercased())
+            
+            if shouldShowByDate && shouldShowBySearch {
+                categorizedTrackers[tracker.category.title, default: []].append(tracker)
             }
         }
+        
+        categories = categorizedTrackers.map {
+            TrackerCategory(title: $0.key, trackers: $0.value)
+        }.sorted {
+            if $0.title == "Закрепленные" { return true }
+            if $1.title == "Закрепленные" { return false }
+            return $0.title < $1.title
+        }
+        
+        updatePlaceholderVisibility()
+        trackersCollectionView.reloadData()
     }
     
-    private func findIndexPath(for trackerID: UUID) -> IndexPath? {
-        for (section, category) in categories.enumerated() {
-            if let row = category.trackers.firstIndex(where: { $0.id == trackerID }) {
-                return IndexPath(row: row, section: section)
-            }
-        }
-        return nil
-    }
 }
 
 extension TrackersViewController: CreateDelegateProtocol {
@@ -461,26 +406,3 @@ extension TrackersViewController: CreateDelegateProtocol {
         }
     }
 }
-
-extension TrackersViewController: UITextFieldDelegate {
-    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        let currentText = textField.text ?? ""
-        guard let stringRange = Range(range, in: currentText) else { return false }
-        let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
-        
-        filterTrackers(for: currentDate, with: updatedText)
-        return true
-    }
-    
-    func textFieldShouldClear(_ textField: UITextField) -> Bool {
-        filterTrackers(for: currentDate)
-        return true
-    }
-    
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
-    }
-    
-}
-

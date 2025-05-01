@@ -24,7 +24,6 @@ final class TrackersCell: UICollectionViewCell {
     
     private var currentDate: Date = Date()
     
-    // MARK: - TrackerName
     private lazy var trackerNameView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 16
@@ -66,14 +65,13 @@ final class TrackersCell: UICollectionViewCell {
         return view
     }()
     
-    // MARK: - Pin Image Setup
     private func setupPinImage() {
         pinImage.image = UIImage(named: "PinImage")
         pinImage.translatesAutoresizingMaskIntoConstraints = false
         pinImage.contentMode = .scaleAspectFit
         pinImage.layer.zPosition = 1 
         trackerNameView.addSubview(pinImage)
-        trackerNameView.bringSubviewToFront(pinImage) // Это важно!
+        trackerNameView.bringSubviewToFront(pinImage)
         
         NSLayoutConstraint.activate([
             pinImage.topAnchor.constraint(equalTo: trackerNameView.topAnchor, constant: 12),
@@ -83,7 +81,6 @@ final class TrackersCell: UICollectionViewCell {
         ])
     }
     
-    // MARK: - Count
     private lazy var countLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont(name: "YS Display Medium", size: 12)
@@ -193,7 +190,6 @@ final class TrackersCell: UICollectionViewCell {
         updatePinVisibility()
     }
     
-    // MARK: - Pin Image Management
     func setPinned(_ pinned: Bool) {
         isPinned = pinned
         updatePinVisibility()
