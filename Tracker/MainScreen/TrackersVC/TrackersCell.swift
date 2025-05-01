@@ -9,13 +9,16 @@ import UIKit
 
 protocol TrackersCellDelegate: AnyObject {
     func didToggleCompletion(for trackerID: UUID, on date: Date, isCompleted: Bool)
+    
 }
 
 final class TrackersCell: UICollectionViewCell {
     
     static let cellIdentifier = "cell"
     private(set) var trackerID: UUID?
+    private let pinImage = UIImageView()
     private var isEvent: Bool = false
+    private var isPinned: Bool = false
     
     weak var delegate: TrackersCellDelegate?
     
@@ -24,7 +27,6 @@ final class TrackersCell: UICollectionViewCell {
     // MARK: - TrackerName
     private lazy var trackerNameView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(named: "CustomGreen")
         view.layer.cornerRadius = 16
         contentView.addSubview(view)
         return view
@@ -47,6 +49,7 @@ final class TrackersCell: UICollectionViewCell {
         trackerNameView.addSubview(view)
         return view
     }()
+    
     private lazy var trackerNameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont(name: "YS Display Medium", size: 12)
@@ -62,6 +65,23 @@ final class TrackersCell: UICollectionViewCell {
         contentView.addSubview(view)
         return view
     }()
+    
+    // MARK: - Pin Image Setup
+    private func setupPinImage() {
+        pinImage.image = UIImage(named: "PinImage")
+        pinImage.translatesAutoresizingMaskIntoConstraints = false
+        pinImage.contentMode = .scaleAspectFit
+        pinImage.layer.zPosition = 1 
+        trackerNameView.addSubview(pinImage)
+        trackerNameView.bringSubviewToFront(pinImage) // Это важно!
+        
+        NSLayoutConstraint.activate([
+            pinImage.topAnchor.constraint(equalTo: trackerNameView.topAnchor, constant: 12),
+            pinImage.trailingAnchor.constraint(equalTo: trackerNameView.trailingAnchor, constant: -12),
+            pinImage.widthAnchor.constraint(equalToConstant: 24),
+            pinImage.heightAnchor.constraint(equalToConstant: 24)
+        ])
+    }
     
     // MARK: - Count
     private lazy var countLabel: UILabel = {
@@ -87,13 +107,15 @@ final class TrackersCell: UICollectionViewCell {
         
         [
             trackerNameView, emojiLabel, emojiCircle, trackerNameLabel,
-            countView, countLabel, plusButton,
+            countView, countLabel, plusButton
         ].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
         
+        setupPinImage()
+        updatePinVisibility()
+        
         NSLayoutConstraint.activate([
-            
             trackerNameView.topAnchor.constraint(equalTo: topAnchor),
             trackerNameView.leadingAnchor.constraint(equalTo: leadingAnchor),
             trackerNameView.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -137,7 +159,7 @@ final class TrackersCell: UICollectionViewCell {
             plusButton.trailingAnchor.constraint(
                 equalTo: countView.trailingAnchor, constant: -12),
             plusButton.widthAnchor.constraint(equalToConstant: 34),
-            plusButton.heightAnchor.constraint(equalToConstant: 34),
+            plusButton.heightAnchor.constraint(equalToConstant: 34)
         ])
     }
     
@@ -154,7 +176,8 @@ final class TrackersCell: UICollectionViewCell {
         isCompletedToday: Bool,
         isEnabled: Bool = true,
         currentDate: Date = Date(),
-        isEvent: Bool
+        isEvent: Bool,
+        isPinned: Bool = false
     ) {
         self.currentDate = currentDate
         plusButton.backgroundColor = color
@@ -163,9 +186,23 @@ final class TrackersCell: UICollectionViewCell {
         trackerNameLabel.text = name
         self.trackerID = trackerID
         self.isEvent = isEvent
+        self.isPinned = isPinned
         
         countLabel.text = days.days()
         updateCompletionStatus(isCompletedToday: isCompletedToday, isEnabled: isEnabled)
+        updatePinVisibility()
+    }
+    
+    // MARK: - Pin Image Management
+    func setPinned(_ pinned: Bool) {
+        isPinned = pinned
+        updatePinVisibility()
+    }
+    
+    private func updatePinVisibility() {
+        UIView.transition(with: pinImage, duration: 0.3, options: .transitionCrossDissolve) {
+            self.pinImage.isHidden = !self.isPinned
+        }
     }
     
     func updateDays(days: Int, isAddition: Bool, isEnabled: Bool = true) {

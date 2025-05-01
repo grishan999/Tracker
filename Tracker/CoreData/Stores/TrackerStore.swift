@@ -40,14 +40,22 @@ final class TrackerStore: NSObject {
             return []
         }
         
-        return trackersCoreData.compactMap { coreData in
+        return trackersCoreData.compactMap { coreData -> Tracker? in
             guard let id = coreData.id,
                   let title = coreData.title,
                   let emoji = coreData.emoji,
-                  let colorHex = coreData.color,
-                  let color = UIColor(hex: colorHex),
-                  let category = coreData.category,
+                  let colorHex = coreData.color else {
+                return nil
+            }
+            
+            guard let color = UIColor(hex: colorHex) else {
+                print("Failed to create color from hex: \(colorHex)")
+                return nil
+            }
+            
+            guard let category = coreData.category,
                   let categoryTitle = category.title else {
+                print("Category or category title is missing")
                 return nil
             }
             
@@ -59,7 +67,8 @@ final class TrackerStore: NSObject {
                 color: color,
                 emoji: emoji,
                 schedule: Set(schedule),
-                category: TrackerCategory(title: categoryTitle, trackers: [])
+                category: TrackerCategory(title: categoryTitle, trackers: []),
+                isPinned: coreData.isPinned
             )
         }
     }
@@ -90,4 +99,15 @@ final class TrackerStore: NSObject {
     func convertScheduleToCoreData(schedule: [Day]) -> String {
         schedule.map { String($0.rawValue) }.joined(separator: ",")
     }
+    
+    func togglePin(for trackerID: UUID) throws {
+            let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+            request.predicate = NSPredicate(format: "id == %@", trackerID as CVarArg)
+            
+            let results = try context.fetch(request)
+            guard let trackerToUpdate = results.first else { return }
+            
+            trackerToUpdate.isPinned = !trackerToUpdate.isPinned
+            try context.save()
+        }
 }

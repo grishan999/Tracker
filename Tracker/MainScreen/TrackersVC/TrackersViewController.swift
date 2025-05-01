@@ -252,7 +252,7 @@ final class TrackersViewController: UIViewController {
         collectionView.reloadData()
     }
     
-    private func filterTrackers(for date: Date) {
+    private func filterTrackers(for date: Date, with searchText: String = "") {
         let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: date)
         let isToday = calendar.isDate(date, inSameDayAs: Date())
@@ -263,22 +263,37 @@ final class TrackersViewController: UIViewController {
         let allTrackers = trackerStore.fetchTrackers()
         var categorizedTrackers: [String: [Tracker]] = [:]
         
-        for tracker in allTrackers {
-            let shouldShow: Bool
-            
+        // Сначала добавляем закрепленные трекеры
+        let pinnedTrackers = allTrackers.filter { $0.isPinned }
+        for tracker in pinnedTrackers {
+            categorizedTrackers["Закрепленные", default: []].append(tracker)
+        }
+        
+        // Затем остальные трекеры
+        for tracker in allTrackers where !tracker.isPinned {
+            let shouldShowByDate: Bool
             if tracker.schedule.isEmpty {
-                shouldShow = isToday
+                shouldShowByDate = isToday
             } else {
-                shouldShow = tracker.schedule.contains { $0.calendarDayNumber == weekday }
+                shouldShowByDate = tracker.schedule.contains { $0.calendarDayNumber == weekday }
             }
-            if shouldShow {
+            
+            let shouldShowBySearch = searchText.isEmpty ||
+            tracker.title.lowercased().contains(searchText.lowercased())
+            
+            if shouldShowByDate && shouldShowBySearch {
                 categorizedTrackers[tracker.category.title, default: []].append(tracker)
             }
         }
         
+        // Сортируем категории, закрепленные идут первыми
         categories = categorizedTrackers.map {
             TrackerCategory(title: $0.key, trackers: $0.value)
-        }.sorted { $0.title < $1.title }
+        }.sorted {
+            if $0.title == "Закрепленные" { return true }
+            if $1.title == "Закрепленные" { return false }
+            return $0.title < $1.title
+        }
         
         updatePlaceholderVisibility()
         collectionView.reloadData()
@@ -321,7 +336,18 @@ final class TrackersViewController: UIViewController {
         let hasVisibleTrackers = categories.contains { !$0.trackers.isEmpty }
         placeholderView.isHidden = hasVisibleTrackers
         collectionView.isHidden = !hasVisibleTrackers
-        
+    }
+    
+    func togglePin(for trackerID: UUID) {
+        do {
+            try trackerStore.togglePin(for: trackerID)
+            // Обновляем данные и интерфейс
+            categories = trackerCategoryStore.fetchCategories()
+            filterTrackers(for: currentDate)
+            collectionView.reloadData()
+        } catch {
+            print("Ошибка при переключении закрепления: \(error)")
+        }
     }
     
 }
@@ -456,38 +482,5 @@ extension TrackersViewController: UITextFieldDelegate {
         return true
     }
     
-    private func filterTrackers(for date: Date, with searchText: String = "") {
-        let calendar = Calendar.current
-        let weekday = calendar.component(.weekday, from: date)
-        let isToday = calendar.isDate(date, inSameDayAs: Date())
-        
-        try? trackerCategoryStore.fetchedResultsController?.performFetch()
-        try? trackerRecordStore.fetchedResultsController?.performFetch()
-        
-        let allTrackers = trackerStore.fetchTrackers()
-        var categorizedTrackers: [String: [Tracker]] = [:]
-        
-        for tracker in allTrackers {
-            let shouldShowByDate: Bool
-            if tracker.schedule.isEmpty {
-                shouldShowByDate = isToday
-            } else {
-                shouldShowByDate = tracker.schedule.contains { $0.calendarDayNumber == weekday }
-            }
-            
-            let shouldShowBySearch = searchText.isEmpty ||
-            tracker.title.lowercased().contains(searchText.lowercased())
-            
-            if shouldShowByDate && shouldShowBySearch {
-                categorizedTrackers[tracker.category.title, default: []].append(tracker)
-            }
-        }
-        
-        categories = categorizedTrackers.map {
-            TrackerCategory(title: $0.key, trackers: $0.value)
-        }.sorted { $0.title < $1.title }
-        
-        updatePlaceholderVisibility()
-        collectionView.reloadData()
-    }
 }
+
