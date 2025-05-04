@@ -85,6 +85,7 @@ final class TrackersViewController: UIViewController {
         setupStarImage()
         setupQuestionLabel()
         setupCollectionView()
+        setupFilterButton()
         
         view.addSubview(placeholderView)
         NSLayoutConstraint.activate([
@@ -234,6 +235,35 @@ final class TrackersViewController: UIViewController {
         ])
     }
     
+    private lazy var filterButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Фильтры", for: .normal)
+        button.titleLabel?.font = UIFont(name: "YS Display Medium", size: 17)
+        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        button.backgroundColor = UIColor(named: "CustomBlue")
+        button.layer.cornerRadius = 16
+        button.addTarget(self, action: #selector(filterButtonTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    private func setupFilterButton() {
+        view.addSubview(filterButton)
+        NSLayoutConstraint.activate([
+            filterButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            filterButton.widthAnchor.constraint(equalToConstant: 114),
+            filterButton.heightAnchor.constraint(equalToConstant: 50),
+            filterButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
+        ])
+        filterButton.layer.zPosition = 15
+    }
+    
+    @objc private func filterButtonTapped() {
+        let filterVC = FiltersViewController()
+        let navController = UINavigationController(rootViewController: filterVC)
+        navController.modalPresentationStyle = .automatic
+        present(navController, animated: true)
+    }
     
     @objc func addTrackerButtonTapped() {
         let typeCreationVC = TypeCreationViewController()
@@ -252,6 +282,7 @@ final class TrackersViewController: UIViewController {
         updatePlaceholderVisibility()
         trackersCollectionView.reloadData()
     }
+    
     
     private func completeTracker(with id: UUID, on date: Date) {
         let record = TrackerRecord(trackerId: id, date: date)
