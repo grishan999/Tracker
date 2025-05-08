@@ -49,7 +49,8 @@ final class EventCreationViewController: UIViewController {
     private lazy var eventNameTextField: UITextField = {
         let textField = UITextField()
         textField.backgroundColor = UIColor(named: "CustomBackgroundDay")
-        textField.placeholder = "Введите название трекера"
+        textField.placeholder = NSLocalizedString("event.name.placeholder",
+                                                  comment: "Плейсхолдер названия трекера")
         textField.layer.cornerRadius = 16
         textField.clearButtonMode = .whileEditing
         textField.leftView = UIView(
@@ -62,7 +63,9 @@ final class EventCreationViewController: UIViewController {
         return textField
     }()
     
-    private let tableViewCells: [String] = ["Категория"]
+    private let tableViewCells: [String] = [
+        NSLocalizedString("category.tableview.button", comment: "Кнопка выбора категории")
+    ]
     
     private lazy var settingsTableView: UITableView = {
         let tableView = UITableView()
@@ -80,7 +83,9 @@ final class EventCreationViewController: UIViewController {
     
     private lazy var cancelButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Отмена", for: .normal)
+        button.setTitle(NSLocalizedString("cancel.creation.tracker.button",
+                                          comment: "Кнопка отмены создания трекера"),
+                        for: .normal)
         button.setTitleColor(UIColor(named: "CancelButtonRed"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
@@ -94,7 +99,9 @@ final class EventCreationViewController: UIViewController {
     
     private lazy var createButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("Создать", for: .normal)
+        button.setTitle(NSLocalizedString("create.creation.tracker.button",
+                                          comment: "Кнопка создания трекера Создать"),
+                        for: .normal)
         button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
@@ -116,7 +123,8 @@ final class EventCreationViewController: UIViewController {
     
     private lazy var emojiHeaderLabel: UILabel = {
         let label = UILabel()
-        label.text = "Emoji"
+        label.text = NSLocalizedString("emoji.collection.title",
+                                        comment: "Заголовок Emoji")
         label.font = UIFont(name: "YS Display Bold", size: 19)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -131,7 +139,8 @@ final class EventCreationViewController: UIViewController {
     
     private lazy var colorHeaderLabel: UILabel = {
         let label = UILabel()
-        label.text = "Цвет"
+        label.text = NSLocalizedString("color.collection.title",
+                                       comment: "Заголовок Цвет")
         label.font = UIFont(name: "YS Display Bold", size: 19)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -154,7 +163,8 @@ final class EventCreationViewController: UIViewController {
         
         navigationController?.navigationBar.tintColor = UIColor(
             named: "CustomBlack")
-        navigationItem.title = "Новое нерегулярное событие"
+        navigationItem.title = NSLocalizedString("new.event.vc.title",
+                                                 comment: "Название вьюшки Новое нерегулярное событие")
         
         setupUI()
     }

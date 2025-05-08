@@ -59,7 +59,8 @@ final class TrackerReductionViewController: UIViewController {
     private lazy var trackerNameTextField: UITextField = {
         let textField = UITextField()
         textField.backgroundColor = UIColor(named: "CustomBackgroundDay")
-        textField.placeholder = "Введите название трекера"
+        textField.placeholder = NSLocalizedString("event.name.placeholder",
+                                                  comment: "Плейсхолдер названия трекера")
         textField.layer.cornerRadius = 16
         textField.clearButtonMode = .whileEditing
         textField.leftView = UIView(
@@ -72,7 +73,10 @@ final class TrackerReductionViewController: UIViewController {
         return textField
     }()
     
-    private let tableViewCells: [String] = ["Категория", "Расписание"]
+    private let tableViewCells: [String] = [
+        NSLocalizedString("category.tableview.button", comment: "Кнопка выбора категории"),
+        NSLocalizedString("schedule.tableview.button", comment: "Кнопка выбора расписания")
+    ]
     
     private lazy var settingsTableView: UITableView = {
         let tableView = UITableView()
@@ -90,7 +94,8 @@ final class TrackerReductionViewController: UIViewController {
     
     private lazy var cancelButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Отменить", for: .normal)
+        button.setTitle(NSLocalizedString("cancel.creation.tracker.button",
+                        comment: "Кнопка отмены создания трекера"), for: .normal)
         button.setTitleColor(UIColor(named: "CancelButtonRed"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
@@ -104,7 +109,8 @@ final class TrackerReductionViewController: UIViewController {
     
     private lazy var saveButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("Сохранить", for: .normal)
+        button.setTitle(NSLocalizedString("save.creation.tracker.button",
+                        comment: "Кнопка сохранения изменений в трекере"), for: .normal)
         button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
@@ -130,7 +136,8 @@ final class TrackerReductionViewController: UIViewController {
     
     private lazy var emojiHeaderLabel: UILabel = {
         let label = UILabel()
-        label.text = "Emoji"
+        label.text = NSLocalizedString("emoji.collection.title",
+                                       comment: "Заголовок Emoji")
         label.font = UIFont(name: "YS Display Bold", size: 19)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -152,7 +159,8 @@ final class TrackerReductionViewController: UIViewController {
     
     private lazy var colorHeaderLabel: UILabel = {
         let label = UILabel()
-        label.text = "Цвет"
+        label.text = NSLocalizedString("color.collection.title",
+                                       comment: "Заголовок Цвет")
         label.font = UIFont(name: "YS Display Bold", size: 19)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -181,7 +189,8 @@ final class TrackerReductionViewController: UIViewController {
         view.backgroundColor = .systemBackground
         
         navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
-        navigationItem.title = "Редактирование привычки"
+        navigationItem.title = NSLocalizedString("reduction.view.title",
+                                                 comment: "Заголовок Редактирование привычки")
         
         setupUI()
         updateSaveButtonState()
@@ -312,7 +321,8 @@ final class TrackerReductionViewController: UIViewController {
         guard !days.isEmpty else { return "" }
         
         if days.count == Day.allCases.count {
-            return "Каждый день"
+            return NSLocalizedString("everyday.schedule.alldays",
+                                     comment: "Выбор всех дней недели Каждый день")
         }
         
         let sortedDays = Day.allCases.filter { days.contains($0) }
@@ -332,7 +342,8 @@ extension TrackerReductionViewController: UITableViewDelegate, UITableViewDataSo
         cell.textLabel?.text = tableViewCells[indexPath.row]
         
         if indexPath.row == 0 {
-            cell.detailTextLabel?.text = selectedCategory?.title ?? "Выберите категорию"
+            cell.detailTextLabel?.text = selectedCategory?.title ?? NSLocalizedString("choose.category.title",
+                                                                                      comment: "Выберите категорию название")
         } else if indexPath.row == 1 {
             cell.detailTextLabel?.text = schedule.isEmpty ? "" : formatScheduleText(days: schedule)
         }

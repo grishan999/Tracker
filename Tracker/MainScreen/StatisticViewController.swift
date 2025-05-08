@@ -50,7 +50,8 @@ final class StatisticViewController: UIViewController {
         ])
         
         let titleLabel = UILabel()
-        titleLabel.text = "Статистика"
+        titleLabel.text = NSLocalizedString("statistic.header",
+                                            comment: "Заголовок Статистика на главном экране")
         titleLabel.font = UIFont(name: "YS Display Bold", size: 34)
         titleLabel.textColor = UIColor(named: "CustomBlack")
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -85,7 +86,8 @@ final class StatisticViewController: UIViewController {
     }
     
     private func setupErrorLabel() {
-        errorLabel.text = "Анализировать пока нечего"
+        errorLabel.text = NSLocalizedString("emptyState.statistic.title",
+                                            comment: "Заглушка на пустом экране Отслеживания")
         errorLabel.font = UIFont(name: "YS Display Medium", size: 12)
         errorLabel.textColor = UIColor(named: "CustomBlack")
         errorLabel.translatesAutoresizingMaskIntoConstraints = false

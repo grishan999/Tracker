@@ -135,7 +135,8 @@ final class TrackersViewController: UIViewController {
     }
     
     private func setupHeaderLabel() {
-        headerLabel.text = "Трекеры"
+        headerLabel.text = NSLocalizedString("trackers.header",
+                                             comment: "Заголовок Трекеры на главном экране")
         headerLabel.textColor = UIColor(named: "CustomBlack")
         headerLabel.font = UIFont(name: "YS Display Bold", size: 34)
         headerLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -150,7 +151,6 @@ final class TrackersViewController: UIViewController {
     }
     
     private func setupSearchBar() {
-        searchBar.placeholder = "Поиск"
         searchBar.searchBarStyle = .minimal
         searchBar.tintColor = .gray
         searchBar.translatesAutoresizingMaskIntoConstraints = false
@@ -165,7 +165,8 @@ final class TrackersViewController: UIViewController {
             textField.font = UIFont(name: "YS Display Medium", size: 17)
             
             textField.attributedPlaceholder = NSAttributedString(
-                string: "Поиск",
+                string: NSLocalizedString("searchBar.placeholder",
+                                          comment: "Плейсхолдер Поиск"),
                 attributes: [
                     .foregroundColor: UIColor(named: "CustomGray") ?? .gray,
                     .font: UIFont(name: "YS Display Medium", size: 17)
@@ -219,7 +220,8 @@ final class TrackersViewController: UIViewController {
     }
     
     private func setupQuestionLabel() {
-        questionLabel.text = "Что будем отслеживать?"
+        questionLabel.text = NSLocalizedString("emptyState.trackers.title",
+                                                comment: "Заглушка на пустом экране Трекеров")
         questionLabel.font = UIFont(name: "YS Display Medium", size: 12)
         questionLabel.textColor = UIColor(named: "CustomBlack")
         questionLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -237,7 +239,9 @@ final class TrackersViewController: UIViewController {
     
     private lazy var filterButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Фильтры", for: .normal)
+        button.setTitle(NSLocalizedString("filters.button",
+                                          comment: "Кнопка Фильтры"),
+                        for: .normal)
         button.titleLabel?.font = UIFont(name: "YS Display Medium", size: 17)
         button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
         button.backgroundColor = UIColor(named: "CustomBlue")

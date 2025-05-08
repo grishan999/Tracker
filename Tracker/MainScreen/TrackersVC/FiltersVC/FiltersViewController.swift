@@ -12,10 +12,25 @@ protocol FiltersViewControllerDelegate: AnyObject {
 }
 
 enum FilterType: String, CaseIterable {
-    case all = "Все трекеры"
-    case today = "Трекеры на сегодня"
-    case completed = "Завершенные"
-    case notCompleted = "Незавершенные"
+    case all
+    case today
+    case completed
+    case notCompleted
+    
+    var localizedTitle: String {
+        let key: String
+        switch self {
+        case .all: key = "filters.alltrackers.case"
+        case .today: key = "filters.today.case"
+        case .completed: key = "filters.completed.case"
+        case .notCompleted: key = "filters.notcompleted.case"
+        }
+        return NSLocalizedString(key, comment: "Название фильтра трекеров")
+    }
+    
+    var rawValue: String {
+        return localizedTitle
+    }
 }
 
 final class FiltersViewController: UIViewController {
@@ -65,7 +80,8 @@ final class FiltersViewController: UIViewController {
     }
     
     private func setupNavigationBar() {
-        navigationItem.title = "Фильтры"
+        navigationItem.title = NSLocalizedString("filters.navigation.title",
+                                                 comment: "Заголовок экрана Фильтры")
         navigationController?.navigationBar.prefersLargeTitles = false
     }
 }

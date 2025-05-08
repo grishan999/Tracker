@@ -14,9 +14,12 @@ import UIKit
 
 final class AddCategoryViewController: UIViewController {
     private enum Constants {
-        static let placeholder = "Введите название категории"
-        static let doneButtonTitle = "Готово"
-        static let navigationTitle = "Новая категория"
+        static let placeholder = NSLocalizedString("new.category.name.placeholder",
+                                                   comment: "Плейсхолдер Введите название категории")
+        static let doneButtonTitle = NSLocalizedString("new.category.button.title",
+                                                       comment: "Кнопка Новая категория")
+        static let navigationTitle = NSLocalizedString("new.category.button.title",
+                                                       comment: "Название Новая категория вьюшки")
         static let cornerRadius: CGFloat = 16
         static let textFieldHeight: CGFloat = 75
         static let buttonHeight: CGFloat = 60

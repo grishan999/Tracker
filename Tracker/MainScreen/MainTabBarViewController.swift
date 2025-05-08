@@ -19,7 +19,8 @@ final class MainTabBarController: UITabBarController {
         let trackersVC = TrackersViewController()
         let trackersNav = UINavigationController(rootViewController: trackersVC)
         trackersNav.tabBarItem = UITabBarItem(
-            title: "Трекеры",
+            title: NSLocalizedString("trackers.button.title",
+                                     comment: "Кнопка Трекеры на главном экране"),
             image: UIImage(named: "AimGrey")?.withRenderingMode(
                 .alwaysOriginal),
             selectedImage: UIImage(named: "AimBlue")?.withRenderingMode(
@@ -30,7 +31,8 @@ final class MainTabBarController: UITabBarController {
         let statisticNav = UINavigationController(
             rootViewController: statisticVC)
         statisticNav.tabBarItem = UITabBarItem(
-            title: "Статистика",
+            title: NSLocalizedString("statistic.button.title",
+                                     comment: "Кнопка Статистика на главном экране"),
             image: UIImage(named: "RabbitGrey")?.withRenderingMode(
                 .alwaysOriginal),
             selectedImage: UIImage(named: "RabbitBlue")?.withRenderingMode(

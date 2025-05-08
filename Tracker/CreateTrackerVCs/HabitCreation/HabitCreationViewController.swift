@@ -53,7 +53,8 @@ final class HabitCreationViewController: UIViewController {
     private lazy var habitNameTextField: UITextField = {
         let textField = UITextField()
         textField.backgroundColor = UIColor(named: "CustomBackgroundDay")
-        textField.placeholder = "Введите название привычки"
+        textField.placeholder = NSLocalizedString("habit.name.placeholder",
+                                                  comment: "Плейсхолдер названия привычки")
         textField.layer.cornerRadius = 16
         textField.clearButtonMode = .whileEditing
         textField.leftView = UIView(
@@ -66,7 +67,10 @@ final class HabitCreationViewController: UIViewController {
         return textField
     }()
     
-    private let tableViewCells: [String] = ["Категория", "Расписание"]
+    private let tableViewCells: [String] = [
+        NSLocalizedString("category.tableview.button", comment: "Кнопка выбора категории"),
+        NSLocalizedString("schedule.tableview.button", comment: "Кнопка выбора расписания")
+    ]
     
     private lazy var settingsTableView: UITableView = {
         let tableView = UITableView()
@@ -84,7 +88,9 @@ final class HabitCreationViewController: UIViewController {
     
     private lazy var cancelButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Отмена", for: .normal)
+        button.setTitle(NSLocalizedString("cancel.creation.tracker.button",
+                                          comment: "Кнопка отмены создания трекера"),
+                        for: .normal)
         button.setTitleColor(UIColor(named: "CancelButtonRed"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
@@ -98,7 +104,9 @@ final class HabitCreationViewController: UIViewController {
     
     private lazy var createButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("Создать", for: .normal)
+        button.setTitle(NSLocalizedString("create.creation.tracker.button",
+                                          comment: "Кнопка создания трекера Создать"),
+                        for: .normal)
         button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
@@ -124,7 +132,8 @@ final class HabitCreationViewController: UIViewController {
     
     private lazy var emojiHeaderLabel: UILabel = {
         let label = UILabel()
-        label.text = "Emoji"
+        label.text = NSLocalizedString("emoji.collection.title",
+                                       comment: "Заголовок Emoji")
         label.font = UIFont(name: "YS Display Bold", size: 19)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -146,7 +155,8 @@ final class HabitCreationViewController: UIViewController {
     
     private lazy var colorHeaderLabel: UILabel = {
         let label = UILabel()
-        label.text = "Цвет"
+        label.text = NSLocalizedString("color.collection.title",
+                                       comment: "Заголовок Цвет")
         label.font = UIFont(name: "YS Display Bold", size: 19)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -158,7 +168,8 @@ final class HabitCreationViewController: UIViewController {
         
         navigationController?.navigationBar.tintColor = UIColor(
             named: "CustomBlack")
-        navigationItem.title = "Новая привычка"
+        navigationItem.title = NSLocalizedString("new.habit.vc.title",
+                                                 comment: "Название вьюшки Новая привычка")
         
         setupUI()
     }
@@ -394,7 +405,8 @@ extension HabitCreationViewController: ScheduleViewControllerDelegate {
         guard !days.isEmpty else { return "" }
         
         if days.count == Day.allCases.count {
-            return "Каждый день"
+            return NSLocalizedString("everyday.schedule.alldays",
+                                     comment: "Выбор всех дней недели Каждый день")
         }
         
         let sortedDays = Day.allCases.filter { days.contains($0) }

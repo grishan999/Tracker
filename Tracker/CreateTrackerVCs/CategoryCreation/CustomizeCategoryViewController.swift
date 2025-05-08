@@ -28,7 +28,9 @@ final class CustomizeCategoryViewController: UIViewController {
     
     private lazy var doneButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
+        button.setTitle(NSLocalizedString("done.black.button",
+                                          comment: "Кнопка Готово"),
+                        for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = UIColor(named: "CustomBlack")
         button.setTitleColor(.white, for: .normal)
@@ -66,7 +68,8 @@ final class CustomizeCategoryViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
-        navigationItem.title = "Редактирование категории"
+        navigationItem.title = NSLocalizedString("reduction.category.view.title",
+                                                 comment: "Заголовок Редактирование категории")
         
         view.addSubview(textField)
         view.addSubview(doneButton)

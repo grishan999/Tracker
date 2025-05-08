@@ -30,7 +30,8 @@ final class CategoryCreationViewController: UIViewController {
     
     private lazy var addButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Добавить категорию", for: .normal)
+        button.setTitle(NSLocalizedString("add.category",
+                                          comment: "Добавьте категорию кнопка"), for: .normal)
         button.titleLabel?.font = UIFont(name: "YS Display Medium", size: 16)
         button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
         button.backgroundColor = UIColor(named: "CustomBlack")
@@ -68,7 +69,8 @@ final class CategoryCreationViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
-        navigationItem.title = "Категория"
+        navigationItem.title = NSLocalizedString("category.tableview.button",
+                                                 comment: "Категория название вьюшки")
         
         setupUI()
         bindViewModel()
@@ -131,7 +133,8 @@ final class CategoryCreationViewController: UIViewController {
     }
     
     private func setupQuestionLabel() {
-        questionLabel.text = "Привычки и события можно \n объединить по смыслу"
+        questionLabel.text = NSLocalizedString("category.view.placeholder",
+                                               comment: "Заглушка экрана категорий")
         questionLabel.font = UIFont(name: "YS Display Medium", size: 12)
         questionLabel.numberOfLines = 2
         questionLabel.textAlignment = .center
@@ -243,13 +246,16 @@ extension CategoryCreationViewController {
         cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
         
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ -> UIMenu? in
-            let edit = UIAction(title: "Редактировать") { [weak self] _ in
+            let edit = UIAction(title: NSLocalizedString("customize.button",
+                                                         comment: "Кнопка Редактировать")) { [weak self] _ in
                 self?.showEditCategoryScreen(category: category, index: indexPath.row)
                 blurView.removeFromSuperview()
                 cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
             }
             
-            let delete = UIAction(title: "Удалить", attributes: .destructive) { [weak self] _ in
+            let delete = UIAction(title: NSLocalizedString("delete.button",
+                                                           comment: "Кнопка Удалить"),
+                                  attributes: .destructive) { [weak self] _ in
                 self?.showDeleteAlert(for: category, at: indexPath.row, blurView: blurView)
             }
             
@@ -274,11 +280,14 @@ extension CategoryCreationViewController {
     private func showDeleteAlert(for category: TrackerCategory, at index: Int, blurView: UIVisualEffectView) {
         let alert = UIAlertController(
             title: nil,
-            message: "Эта категория точно не нужна?",
+            message: NSLocalizedString("category.delete.alert",
+                                      comment: "Алерт это категория точно не нужна?"),
             preferredStyle: .actionSheet
         )
         
-        let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+        let deleteAction = UIAlertAction(title: NSLocalizedString("delete.button",
+                                                                  comment: "Кнопка Удалить"),
+                                         style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             
             self.viewModel.deleteCategory(at: index)
@@ -288,7 +297,8 @@ extension CategoryCreationViewController {
             self.viewModel.loadCategories()
         }
         
-        let cancelAction = UIAlertAction(title: "Отмена", style: .cancel) { _ in
+        let cancelAction = UIAlertAction(title: NSLocalizedString("cancel.creation.tracker.button",
+                                                                  comment: "Кнопка отмены редактирования категории"), style: .cancel) { _ in
             blurView.removeFromSuperview()
         }
         
