@@ -69,7 +69,7 @@ final class TrackersCell: UICollectionViewCell {
         pinImage.image = UIImage(named: "PinImage")
         pinImage.translatesAutoresizingMaskIntoConstraints = false
         pinImage.contentMode = .scaleAspectFit
-        pinImage.layer.zPosition = 1 
+        pinImage.layer.zPosition = 1
         trackerNameView.addSubview(pinImage)
         trackerNameView.bringSubviewToFront(pinImage)
         
@@ -239,17 +239,7 @@ final class TrackersCell: UICollectionViewCell {
 
 extension Int {
     func days() -> String {
-        let mod100 = self % 100
-        let mod10 = self % 10
-        
-        if (11...14).contains(mod100) {
-            return "\(self) дней"
-        }
-        
-        switch mod10 {
-        case 1: return "\(self) день"
-        case 2...4: return "\(self) дня"
-        default: return "\(self) дней"
-        }
+        let format = NSLocalizedString("number.of.days", comment: "Pluralized days count")
+        return String.localizedStringWithFormat(format, self)
     }
 }

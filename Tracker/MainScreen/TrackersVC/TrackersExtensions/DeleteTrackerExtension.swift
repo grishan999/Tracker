@@ -10,22 +10,25 @@ extension TrackersViewController {
     func showDeleteAlert(for tracker: Tracker, at indexPath: IndexPath) {
         let alert = UIAlertController(
             title: nil,
-            message: "Уверены что хотите удалить трекер?",
+            message: NSLocalizedString("delete.tracker.alert",
+                                       comment: "Алерт удалить трекер?"),
             preferredStyle: .actionSheet
         )
-        
+
         let deleteAction = UIAlertAction(
-            title: "Удалить",
+            title: NSLocalizedString("delete.button",
+                                     comment: "Кнопка Удалить"),
             style: .destructive
         ) { [weak self] _ in
             self?.performDeleteTracker(tracker, at: indexPath)
         }
         
         let cancelAction = UIAlertAction(
-            title: "Отменить",
+            title: NSLocalizedString("cancel.alert.button",
+                                     comment: "Кнопка Отменить"),
             style: .cancel
         )
-    
+
         alert.addAction(deleteAction)
         alert.addAction(cancelAction)
         

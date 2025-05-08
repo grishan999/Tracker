@@ -46,7 +46,11 @@
 "category.delete.alert" = "Эта категория точно не нужна?";
 "reduction.category.view.title" = "Редактирование категории";
 "new.category.name.placeholder" = "Введите название категории";
-"new.category.button.title" = "Новая категория"; 
+"new.category.button.title" = "Новая категория";
+"pin.tracker.button" = "Закрепить";
+"unpin.tracker.button" = "Открепить";
+"delete.tracker.alert" = "Уверены что хотите удалить трекер?";
+"cancel.alert.button" = "Отменить";
 
 "weekday.monday.full" = "Понедельник";
 "weekday.tuesday.full" = "Вторник";

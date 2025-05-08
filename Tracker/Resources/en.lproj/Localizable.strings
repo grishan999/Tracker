@@ -47,6 +47,10 @@
 "reduction.category.view.title" = "Category editing";
 "new.category.name.placeholder" = "Enter category name";
 "new.category.button.title" = "New category";
+"pin.tracker.button" = "Pin";
+"unpin.tracker.button" = "Unpin";
+"delete.tracker.alert" = "Are you sure you want to remove the tracker?";
+"cancel.alert.button" = "Cancel";
 
 "weekday.monday.full" = "Monday";
 "weekday.tuesday.full" = "Tuesday";

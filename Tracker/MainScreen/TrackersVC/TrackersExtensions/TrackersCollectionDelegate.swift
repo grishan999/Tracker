@@ -98,16 +98,23 @@ extension TrackersViewController: UICollectionViewDataSource,
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ -> UIMenu? in
             guard let self = self else { return nil }
             
-            let pinTitle = tracker.isPinned ? "Открепить" : "Закрепить"
+            let pinTitle = tracker.isPinned ?
+            NSLocalizedString("unpin.tracker.button", comment: "Открепить") :
+            NSLocalizedString("pin.tracker.button", comment: "Закрепить")
+            
             let pinAction = UIAction(title: pinTitle) { _ in
                 self.togglePin(for: tracker.id)
             }
-            
-            let editAction = UIAction(title: "Редактировать") { _ in
+
+
+            let editAction = UIAction(title: NSLocalizedString("customize.button",
+                                                               comment: "Редактировать")) { _ in
                 self.showEditScreen(for: tracker, at: indexPath)
             }
             
-            let deleteAction = UIAction(title: "Удалить", attributes: .destructive) { _ in
+            let deleteAction = UIAction(title: NSLocalizedString("delete.button",
+                                                                 comment: "Удалить"),
+                                        attributes: .destructive) { _ in
                 self.showDeleteAlert(for: tracker, at: indexPath)
             }
             

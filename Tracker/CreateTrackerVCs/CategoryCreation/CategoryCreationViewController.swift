@@ -297,7 +297,7 @@ extension CategoryCreationViewController {
             self.viewModel.loadCategories()
         }
         
-        let cancelAction = UIAlertAction(title: NSLocalizedString("cancel.creation.tracker.button",
+        let cancelAction = UIAlertAction(title: NSLocalizedString("cancel.alert.button",
                                                                   comment: "Кнопка отмены редактирования категории"), style: .cancel) { _ in
             blurView.removeFromSuperview()
         }

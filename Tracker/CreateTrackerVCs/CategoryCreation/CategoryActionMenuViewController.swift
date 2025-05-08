@@ -57,9 +57,9 @@ extension CategoryActionMenuViewController: UITableViewDelegate, UITableViewData
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = indexPath.row == 0 ?  NSLocalizedString("customize.button",
-                                                                       comment: "Кнопка Редактировать") : NSLocalizedString("delete.button",
-                                                                                                                            comment: "Кнопка Удалить")
+        cell.textLabel?.text = indexPath.row == 0 ?
+        NSLocalizedString("customize.button", comment: "Кнопка Редактировать") :
+        NSLocalizedString("delete.button", comment: "Кнопка Удалить")
         cell.textLabel?.font = UIFont.systemFont(ofSize: 17)
         cell.textLabel?.textAlignment = .center
         cell.backgroundColor = .clear
