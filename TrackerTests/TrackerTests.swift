@@ -25,9 +25,10 @@ final class MainTabBarControllerSnapshotTests: XCTestCase {
         super.tearDown()
     }
     
-    func test_mainTabBarController_defaultState() {
-        let tabBarVC = MainTabBarController()
+    func test_mainTabBarController_defaultState_light() {
+        window.overrideUserInterfaceStyle = .light
         
+        let tabBarVC = MainTabBarController()
         window.rootViewController = tabBarVC
         tabBarVC.loadViewIfNeeded()
         
@@ -35,14 +36,32 @@ final class MainTabBarControllerSnapshotTests: XCTestCase {
         
         assertSnapshot(
             matching: tabBarVC,
-            as: .image,
-            named: "default",
+            as: .image(traits: .init(userInterfaceStyle: .light)),
+            named: "light_default",
             record: false
         )
     }
     
-    //тест статистики, меняем вкладку
-    func test_mainTabBarController_secondTabSelected() {
+    func test_mainTabBarController_defaultState_dark() {
+        window.overrideUserInterfaceStyle = .dark
+        
+        let tabBarVC = MainTabBarController()
+        window.rootViewController = tabBarVC
+        tabBarVC.loadViewIfNeeded()
+        
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 1.5))
+        
+        assertSnapshot(
+            matching: tabBarVC,
+            as: .image(traits: .init(userInterfaceStyle: .dark)),
+            named: "dark_default",
+            record: false
+        )
+    }
+    
+    func test_mainTabBarController_secondTabSelected_light() {
+        window.overrideUserInterfaceStyle = .light
+        
         let tabBarVC = MainTabBarController()
         window.rootViewController = tabBarVC
         tabBarVC.loadViewIfNeeded()
@@ -53,45 +72,28 @@ final class MainTabBarControllerSnapshotTests: XCTestCase {
         
         assertSnapshot(
             matching: tabBarVC,
-            as: .image,
-            named: "second_tab_selected",
+            as: .image(traits: .init(userInterfaceStyle: .light)),
+            named: "light_second_tab_selected",
+            record: false
+        )
+    }
+    
+    func test_mainTabBarController_secondTabSelected_dark() {
+        window.overrideUserInterfaceStyle = .dark
+        
+        let tabBarVC = MainTabBarController()
+        window.rootViewController = tabBarVC
+        tabBarVC.loadViewIfNeeded()
+        
+        tabBarVC.selectedIndex = 1
+        
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 1.5))
+        
+        assertSnapshot(
+            matching: tabBarVC,
+            as: .image(traits: .init(userInterfaceStyle: .dark)),
+            named: "dark_second_tab_selected",
             record: false
         )
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    func test_mainTabBarController_darkMode() {
-//        let tabBarVC = MainTabBarController()
-//        
-//        // Применяем темную тему
-//        window.overrideUserInterfaceStyle = .dark
-//        window.rootViewController = tabBarVC
-//        tabBarVC.loadViewIfNeeded()
-//        
-//        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
-//        
-//        assertSnapshot(
-//            matching: tabBarVC,
-//            as: .image,
-//            named: "dark_mode",
-//            record: false
-//        )
-//    }
-
