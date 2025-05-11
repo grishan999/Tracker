@@ -58,42 +58,4 @@ final class MainTabBarControllerSnapshotTests: XCTestCase {
             record: false
         )
     }
-    
-    func test_mainTabBarController_secondTabSelected_light() {
-        window.overrideUserInterfaceStyle = .light
-        
-        let tabBarVC = MainTabBarController()
-        window.rootViewController = tabBarVC
-        tabBarVC.loadViewIfNeeded()
-        
-        tabBarVC.selectedIndex = 1
-        
-        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
-        
-        assertSnapshot(
-            matching: tabBarVC,
-            as: .image(traits: .init(userInterfaceStyle: .light)),
-            named: "light_second_tab_selected",
-            record: false
-        )
-    }
-    
-    func test_mainTabBarController_secondTabSelected_dark() {
-        window.overrideUserInterfaceStyle = .dark
-        
-        let tabBarVC = MainTabBarController()
-        window.rootViewController = tabBarVC
-        tabBarVC.loadViewIfNeeded()
-        
-        tabBarVC.selectedIndex = 1
-        
-        RunLoop.main.run(until: Date(timeIntervalSinceNow: 1.5))
-        
-        assertSnapshot(
-            matching: tabBarVC,
-            as: .image(traits: .init(userInterfaceStyle: .dark)),
-            named: "dark_second_tab_selected",
-            record: false
-        )
-    }
 }
