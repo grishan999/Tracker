@@ -243,7 +243,7 @@ final class TrackersViewController: UIViewController {
                                           comment: "Кнопка Фильтры"),
                         for: .normal)
         button.titleLabel?.font = UIFont(name: "YS Display Medium", size: 17)
-        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        button.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .normal)
         button.backgroundColor = UIColor(named: "CustomBlue")
         button.layer.cornerRadius = 16
         button.addTarget(self, action: #selector(filterButtonTapped), for: .touchUpInside)
