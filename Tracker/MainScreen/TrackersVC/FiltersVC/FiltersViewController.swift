@@ -45,7 +45,7 @@ final class FiltersViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.isScrollEnabled = false
-        tableView.separatorStyle = .none 
+        tableView.separatorStyle = .none
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
         tableView.register(FiltersCell.self, forCellReuseIdentifier: FiltersCell.reuseIdentifier)
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -150,5 +150,11 @@ extension FiltersViewController: UITableViewDelegate {
             cell.layer.cornerRadius = 0
         }
         cell.layer.masksToBounds = true
+    }
+}
+
+extension TrackersViewController: FiltersViewControllerDelegate {
+    func didSelectFilter(_ filter: FilterType) {
+        applyFilter(filter)
     }
 }

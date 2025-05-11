@@ -9,7 +9,7 @@ import UIKit
 
 protocol TrackersCellDelegate: AnyObject {
     func didToggleCompletion(for trackerID: UUID, on date: Date, isCompleted: Bool)
-    
+    func canCompleteTracker(id: UUID, on date: Date) -> Bool
 }
 
 final class TrackersCell: UICollectionViewCell {

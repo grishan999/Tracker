@@ -46,7 +46,7 @@ final class AddCategoryViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle(Constants.doneButtonTitle, for: .normal)
         button.titleLabel?.font = UIFont(name: "YS Display Medium", size: 16)
-        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        button.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .normal)
         button.backgroundColor = UIColor(named: "CustomBlack")
         button.layer.cornerRadius = Constants.cornerRadius
         button.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
@@ -64,12 +64,31 @@ final class AddCategoryViewController: UIViewController {
     }
     
     override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
-        navigationItem.title = Constants.navigationTitle
-        setupUI()
-    }
+           super.viewDidLoad()
+           view.backgroundColor = .systemBackground
+           navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
+           navigationItem.title = Constants.navigationTitle
+           setupUI()
+           setupTextFieldObserver()
+           updateAddButtonState()
+       }
+
+       private func setupTextFieldObserver() {
+           textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+       }
+
+       @objc private func textFieldDidChange() {
+           updateAddButtonState()
+       }
+
+       private func updateAddButtonState() {
+           let isEmpty = textField.text?.isEmpty ?? true
+           addButton.isEnabled = !isEmpty
+           addButton.backgroundColor = isEmpty ? UIColor(named: "CustomGray") : UIColor(named: "CustomBlack")
+           addButton.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+           addButton.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .disabled)
+       }
+
     
     private func setupUI() {
         view.addSubview(textField)

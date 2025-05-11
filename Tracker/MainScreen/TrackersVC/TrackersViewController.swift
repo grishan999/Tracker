@@ -41,6 +41,8 @@ final class TrackersViewController: UIViewController {
     
     var categories: [TrackerCategory] = []
     
+    var currentFilter: FilterType = .all
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -103,14 +105,17 @@ final class TrackersViewController: UIViewController {
         view.addSubview(trackersCollectionView)
         
         NSLayoutConstraint.activate([
-            trackersCollectionView.topAnchor.constraint(
-                equalTo: searchBar.bottomAnchor, constant: 10),
-            trackersCollectionView.leadingAnchor.constraint(
-                equalTo: view.leadingAnchor),
-            trackersCollectionView.trailingAnchor.constraint(
-                equalTo: view.trailingAnchor),
-            trackersCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            trackersCollectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
+            trackersCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            trackersCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            trackersCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+        
+        trackersCollectionView.alwaysBounceVertical = true
+        trackersCollectionView.contentInset.bottom = 66
+        
+        trackersCollectionView.verticalScrollIndicatorInsets.bottom = 66
+        trackersCollectionView.horizontalScrollIndicatorInsets.bottom = 0
     }
     
     private func setupNavBarItems() {
@@ -221,7 +226,7 @@ final class TrackersViewController: UIViewController {
     
     private func setupQuestionLabel() {
         questionLabel.text = NSLocalizedString("emptyState.trackers.title",
-                                                comment: "Заглушка на пустом экране Трекеров")
+                                               comment: "Заглушка на пустом экране Трекеров")
         questionLabel.font = UIFont(name: "YS Display Medium", size: 12)
         questionLabel.textColor = UIColor(named: "CustomBlack")
         questionLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -263,7 +268,8 @@ final class TrackersViewController: UIViewController {
     }
     
     @objc private func filterButtonTapped() {
-        let filterVC = FiltersViewController()
+        let filterVC = FiltersViewController(selectedFilter: currentFilter)
+        filterVC.delegate = self
         let navController = UINavigationController(rootViewController: filterVC)
         navController.modalPresentationStyle = .automatic
         present(navController, animated: true)
@@ -280,11 +286,7 @@ final class TrackersViewController: UIViewController {
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
         let selectedDate = sender.date
         currentDate = selectedDate
-        datePicker.date = selectedDate
         filterTrackers(for: selectedDate)
-        
-        updatePlaceholderVisibility()
-        trackersCollectionView.reloadData()
     }
     
     
@@ -328,14 +330,10 @@ final class TrackersViewController: UIViewController {
     }
     
     func togglePin(for trackerID: UUID) {
-        do {
-            try trackerStore.togglePin(for: trackerID)
-            categories = trackerCategoryStore.fetchCategories()
-            filterTrackers(for: currentDate)
-            trackersCollectionView.reloadData()
-        } catch {
-            print("Ошибка при переключении закрепления: \(error)")
-        }
+        try? trackerStore.togglePin(for: trackerID)
+        categories = trackerCategoryStore.fetchCategories()
+        filterTrackers(for: currentDate)
+        trackersCollectionView.reloadData()
     }
     
     func filterTrackers(for date: Date, with searchText: String = "") {
@@ -347,25 +345,37 @@ final class TrackersViewController: UIViewController {
         try? trackerRecordStore.fetchedResultsController?.performFetch()
         
         let allTrackers = trackerStore.fetchTrackers()
+        let completedTrackerIDs = trackerRecordStore.fetchCompletedTrackerIDs(for: date)
         var categorizedTrackers: [String: [Tracker]] = [:]
         
-        let pinnedTrackers = allTrackers.filter { $0.isPinned }
-        for tracker in pinnedTrackers {
-            categorizedTrackers["Закрепленные", default: []].append(tracker)
+        var filteredTrackers: [Tracker] = allTrackers.filter { tracker in
+            let matchesSchedule = tracker.schedule.isEmpty ||
+            tracker.schedule.contains { $0.calendarDayNumber == weekday }
+            
+            switch currentFilter {
+            case .all:
+                return matchesSchedule
+            case .today:
+                return matchesSchedule && isToday
+            case .completed:
+                return matchesSchedule && completedTrackerIDs.contains(tracker.id)
+            case .notCompleted:
+                return matchesSchedule && !completedTrackerIDs.contains(tracker.id)
+            }
         }
         
-        for tracker in allTrackers where !tracker.isPinned {
-            let shouldShowByDate: Bool
-            if tracker.schedule.isEmpty {
-                shouldShowByDate = isToday
-            } else {
-                shouldShowByDate = tracker.schedule.contains { $0.calendarDayNumber == weekday }
-            }
-            
+        let pinnedTrackers = filteredTrackers.filter { $0.isPinned }
+        if !pinnedTrackers.isEmpty {
+            categorizedTrackers[NSLocalizedString("pinned",
+                                                  comment: "Заголовок Закрепленные")]
+            = pinnedTrackers
+        }
+        
+        for tracker in filteredTrackers where !tracker.isPinned {
             let shouldShowBySearch = searchText.isEmpty ||
             tracker.title.lowercased().contains(searchText.lowercased())
             
-            if shouldShowByDate && shouldShowBySearch {
+            if shouldShowBySearch {
                 categorizedTrackers[tracker.category.title, default: []].append(tracker)
             }
         }
@@ -373,8 +383,12 @@ final class TrackersViewController: UIViewController {
         categories = categorizedTrackers.map {
             TrackerCategory(title: $0.key, trackers: $0.value)
         }.sorted {
-            if $0.title == "Закрепленные" { return true }
-            if $1.title == "Закрепленные" { return false }
+            if $0.title == NSLocalizedString("pinned",
+                                             comment: "Заголовок Закрепленные")
+            { return true }
+            if $1.title == NSLocalizedString("pinned",
+                                             comment: "Заголовок Закрепленные")
+            { return false }
             return $0.title < $1.title
         }
         
@@ -382,6 +396,19 @@ final class TrackersViewController: UIViewController {
         trackersCollectionView.reloadData()
     }
     
+    func applyFilter(_ filter: FilterType) {
+        currentFilter = filter
+        
+        if filter == .today {
+            let today = Date()
+            currentDate = Calendar.current.startOfDay(for: today)
+            datePicker.date = today
+        }
+        
+        filterTrackers(for: currentDate)
+        updatePlaceholderVisibility()
+        trackersCollectionView.reloadData()
+    }
 }
 
 extension TrackersViewController: CreateDelegateProtocol {

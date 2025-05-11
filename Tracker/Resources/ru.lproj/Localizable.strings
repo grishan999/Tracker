@@ -51,6 +51,7 @@
 "unpin.tracker.button" = "Открепить";
 "delete.tracker.alert" = "Уверены что хотите удалить трекер?";
 "cancel.alert.button" = "Отменить";
+"pinned" = "Закрепленные";
 
 "weekday.monday.full" = "Понедельник";
 "weekday.tuesday.full" = "Вторник";

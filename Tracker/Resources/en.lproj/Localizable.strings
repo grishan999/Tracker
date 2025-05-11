@@ -51,6 +51,7 @@
 "unpin.tracker.button" = "Unpin";
 "delete.tracker.alert" = "Are you sure you want to remove the tracker?";
 "cancel.alert.button" = "Cancel";
+"pinned" = "Pinned";
 
 "weekday.monday.full" = "Monday";
 "weekday.tuesday.full" = "Tuesday";

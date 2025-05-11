@@ -121,6 +121,7 @@ extension TrackersViewController: UICollectionViewDataSource,
             return UIMenu(title: "", children: [pinAction, editAction, deleteAction])
         }
     }
+    
     private func showEditScreen(for tracker: Tracker, at indexPath: IndexPath) {
         let category = categories[indexPath.section]
         let records = trackerRecordStore.fetchRecords(for: tracker.id)
