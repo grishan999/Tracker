@@ -20,7 +20,7 @@ final class BlueOnboardingVC: UIViewController {
         let label = UILabel()
         label.text = NSLocalizedString("onboarding.blue.title",
                                      comment: "Заголовок синего экрана онбординга")
-        label.textColor = UIColor(named: "CustomBlack")
+        label.textColor = UIColor(named: "OnboardingBlack")
         label.font = .systemFont(ofSize: 32, weight: .bold)
         label.numberOfLines = 2
         label.textAlignment = .center

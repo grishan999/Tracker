@@ -27,14 +27,15 @@ final class CustomizeCategoryViewController: UIViewController {
     }()
     
     private lazy var doneButton: UIButton = {
-        let button = UIButton(type: .system)
+        let button = UIButton(type: .custom)
         button.setTitle(NSLocalizedString("done.black.button",
                                           comment: "Кнопка Готово"),
                         for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.backgroundColor = UIColor(named: "CustomBlack")
-        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
+        button.layer.borderWidth = 1
+        button.backgroundColor = UIColor(named: "CustomBlack")
         button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         button.isEnabled = !initialTitle.isEmpty
         button.translatesAutoresizingMaskIntoConstraints = false

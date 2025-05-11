@@ -102,7 +102,7 @@ final class EventCreationViewController: UIViewController {
         button.setTitle(NSLocalizedString("create.creation.tracker.button",
                                           comment: "Кнопка создания трекера Создать"),
                         for: .normal)
-        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        button.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
         button.layer.borderWidth = 1
@@ -124,7 +124,7 @@ final class EventCreationViewController: UIViewController {
     private lazy var emojiHeaderLabel: UILabel = {
         let label = UILabel()
         label.text = NSLocalizedString("emoji.collection.title",
-                                        comment: "Заголовок Emoji")
+                                       comment: "Заголовок Emoji")
         label.font = UIFont(name: "YS Display Bold", size: 19)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -267,9 +267,12 @@ final class EventCreationViewController: UIViewController {
         let isColorSelected = selectedColor != nil
         
         let isFormValid = isTextValid && isCategorySelected && isEmojiSelected && isColorSelected
-
+        
         createButton.backgroundColor = isFormValid ? .customBlack : .customGray
         createButton.isEnabled = isFormValid
+        
+        createButton.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        createButton.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .disabled)
     }
 }
 
@@ -325,6 +328,7 @@ extension EventCreationViewController: UITableViewDelegate,
             cell.layer.maskedCorners = []
             cell.layer.cornerRadius = 0
         }
+        tableView.separatorColor = UIColor(named: "CustomGray")
     }
     
     func tableView(
@@ -334,13 +338,13 @@ extension EventCreationViewController: UITableViewDelegate,
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-           tableView.deselectRow(at: indexPath, animated: true)
-           
-           if indexPath.row == 0 {
-               presentCategorySelection()
-           }
-       }
-   }
+        tableView.deselectRow(at: indexPath, animated: true)
+        
+        if indexPath.row == 0 {
+            presentCategorySelection()
+        }
+    }
+}
 
 extension EventCreationViewController: EventEmojiSelectionDelegate, EventColorSelectionDelegate {
     func didSelectEmoji(_ emoji: String) {

@@ -52,7 +52,7 @@ final class TrackersCell: UICollectionViewCell {
     private lazy var trackerNameLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont(name: "YS Display Medium", size: 12)
-        label.textColor = UIColor(named: "CustomWhite")
+        label.textColor = UIColor(named: "NameTrackerColor")
         label.numberOfLines = 2
         label.baselineAdjustment = .alignBaselines
         trackerNameView.addSubview(label)

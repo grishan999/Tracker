@@ -44,7 +44,7 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = UIColor(named: "ViewBackgroundColor")
         
         categories = trackerCategoryStore.fetchCategories()
         filterTrackers(for: currentDate)
@@ -152,7 +152,7 @@ final class TrackersViewController: UIViewController {
     
     private func setupSearchBar() {
         searchBar.searchBarStyle = .minimal
-        searchBar.tintColor = .gray
+        searchBar.tintColor = UIColor(named: "SearchColor")
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(searchBar)
         
@@ -161,7 +161,7 @@ final class TrackersViewController: UIViewController {
         {
             textField.layer.cornerRadius = 10
             textField.layer.masksToBounds = true
-            textField.backgroundColor = .white
+            textField.backgroundColor = UIColor(named: "SearchColor")
             textField.font = UIFont(name: "YS Display Medium", size: 17)
             
             textField.attributedPlaceholder = NSAttributedString(

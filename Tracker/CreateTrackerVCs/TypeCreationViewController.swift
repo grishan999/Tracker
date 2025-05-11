@@ -44,7 +44,7 @@ final class TypeCreationViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(named: "CustomWhite")
+        view.backgroundColor = UIColor(named: "ViewBackgroundColor")
         setupUI()
 
         navigationController?.navigationBar.tintColor = UIColor(

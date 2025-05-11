@@ -12,6 +12,8 @@ final class MainTabBarController: UITabBarController {
         super.viewDidLoad()
         setupTabs()
         customizeTabBar()
+        
+        view.backgroundColor = UIColor(named: "ViewBackgroundColor")
     }
     
     private func setupTabs() {
@@ -46,12 +48,12 @@ final class MainTabBarController: UITabBarController {
     private func customizeTabBar() {
         tabBar.tintColor = UIColor(named: "CustomBlue")
         tabBar.unselectedItemTintColor = .gray
-        tabBar.backgroundColor = .systemBackground
+        tabBar.backgroundColor = UIColor(named: "ViewBackgroundColor")
         
         let topBorder = CALayer()
         topBorder.frame = CGRect(
             x: 0, y: 0, width: tabBar.frame.width, height: 0.5)
-        topBorder.backgroundColor = UIColor.lightGray.cgColor
+        topBorder.backgroundColor = UIColor(named: "TabBarSelectorColor")?.cgColor 
         tabBar.layer.addSublayer(topBorder)
     }
 }

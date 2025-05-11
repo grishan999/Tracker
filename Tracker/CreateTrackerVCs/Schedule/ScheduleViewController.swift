@@ -34,7 +34,7 @@ final class ScheduleViewController: UIViewController {
         button.setTitle(NSLocalizedString("done.black.button",
                                           comment: "Кнопка Готово"),
                         for: .normal)
-        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal) 
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.backgroundColor = UIColor(named: "CustomBlack")
         button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)

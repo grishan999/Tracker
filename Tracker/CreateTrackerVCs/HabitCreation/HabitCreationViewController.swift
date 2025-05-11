@@ -107,7 +107,7 @@ final class HabitCreationViewController: UIViewController {
         button.setTitle(NSLocalizedString("create.creation.tracker.button",
                                           comment: "Кнопка создания трекера Создать"),
                         for: .normal)
-        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        button.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
         button.layer.borderWidth = 1
@@ -145,7 +145,7 @@ final class HabitCreationViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
     }()
-
+    
     private lazy var colorCollectionView: HabitColorCollection = {
         let collectionView = HabitColorCollection(colors: colors)
         collectionView.selectionDelegate = self
@@ -264,7 +264,7 @@ final class HabitCreationViewController: UIViewController {
             category: category,
             emoji: Character(selectedEmoji),
             color: selectedColor,
-            schedule: schedule 
+            schedule: schedule
         )
         presentingViewController?.presentingViewController?.dismiss(animated: true)
     }
@@ -285,16 +285,19 @@ final class HabitCreationViewController: UIViewController {
         let isScheduleSelected = !schedule.isEmpty
         let isEmojiSelected = selectedEmoji != nil
         let isColorSelected = selectedColor != nil
+        let isCategorySelected = selectedCategory != nil
         
-        if isTextValid && isScheduleSelected && isEmojiSelected && isColorSelected {
-            createButton.backgroundColor = UIColor(named: "CustomBlack")
-            createButton.isEnabled = true
-        } else {
-            createButton.backgroundColor = UIColor(named: "CustomGray")
-            createButton.isEnabled = false
-        }
+        let isFormValid = isTextValid && isCategorySelected && isEmojiSelected && isColorSelected && isScheduleSelected
+        
+        createButton.backgroundColor = isFormValid ? .customBlack : .customGray
+        createButton.isEnabled = isFormValid
+        
+        createButton.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        createButton.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .disabled)
     }
 }
+
+
 
 extension HabitCreationViewController: UITableViewDelegate,
                                        UITableViewDataSource
@@ -306,13 +309,13 @@ extension HabitCreationViewController: UITableViewDelegate,
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-           let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
-           cell.accessoryType = .disclosureIndicator
-           
-           cell.textLabel?.text = tableViewCells[indexPath.row]
-           if indexPath.row == 0 {
-               cell.detailTextLabel?.text = selectedCategory?.title 
-           }
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
+        cell.accessoryType = .disclosureIndicator
+        
+        cell.textLabel?.text = tableViewCells[indexPath.row]
+        if indexPath.row == 0 {
+            cell.detailTextLabel?.text = selectedCategory?.title
+        }
         
         
         cell.detailTextLabel?.textColor = UIColor(named: "CustomGray")
@@ -373,6 +376,7 @@ extension HabitCreationViewController: UITableViewDelegate,
         }
         cell.layer.masksToBounds = true
         tableView.separatorStyle = .none
+        tableView.separatorColor = UIColor(named: "CustomGray")
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
