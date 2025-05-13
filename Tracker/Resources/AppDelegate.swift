@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import YandexMobileMetrica
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -16,6 +17,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow()
         window?.rootViewController = OnboardingViewController()
         window?.makeKeyAndVisible()
+        
+        
+        guard let configuration = YMMYandexMetricaConfiguration(apiKey: "API_KEY") else { // используйте ваш ключ
+                return true
+            }
+        
         return true
     }
     
