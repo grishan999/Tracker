@@ -29,8 +29,4 @@ final class AnalyticsService {
         
         print("Analytics Event: \(params)")
     }
-    static func activate() {
-        let configuration = YMMYandexMetricaConfiguration(apiKey: "236fc182-9bff-43a0-917b-c0b67d89af3f")
-        YMMYandexMetrica.activate(with: configuration!)
-    }
 }
