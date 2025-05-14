@@ -273,6 +273,8 @@ final class TrackersViewController: UIViewController {
         let navController = UINavigationController(rootViewController: filterVC)
         navController.modalPresentationStyle = .automatic
         present(navController, animated: true)
+        
+        AnalyticsService.shared.report(event: "click", screen: "Main", item: "filter")
     }
     
     @objc func addTrackerButtonTapped() {
@@ -281,6 +283,8 @@ final class TrackersViewController: UIViewController {
         let navController = UINavigationController(
             rootViewController: typeCreationVC)
         present(navController, animated: true)
+        
+        AnalyticsService.shared.report(event: "click", screen: "Main", item: "add_track")
     }
     
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {

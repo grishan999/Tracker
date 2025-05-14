@@ -234,6 +234,8 @@ final class TrackersCell: UICollectionViewCell {
         updateCompletionStatus(isCompletedToday: newCompletionStatus)
         
         delegate?.didToggleCompletion(for: trackerID, on: currentDate, isCompleted: newCompletionStatus)
+        
+        AnalyticsService.shared.report(event: "click", screen: "Main", item: "track")
     }
 }
 

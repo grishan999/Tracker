@@ -110,12 +110,16 @@ extension TrackersViewController: UICollectionViewDataSource,
             let editAction = UIAction(title: NSLocalizedString("customize.button",
                                                                comment: "Редактировать")) { _ in
                 self.showEditScreen(for: tracker, at: indexPath)
+                
+                AnalyticsService.shared.report(event: "click", screen: "Main", item: "edit")
             }
             
             let deleteAction = UIAction(title: NSLocalizedString("delete.button",
                                                                  comment: "Удалить"),
                                         attributes: .destructive) { _ in
                 self.showDeleteAlert(for: tracker, at: indexPath)
+                
+                AnalyticsService.shared.report(event: "click", screen: "Main", item: "delete")
             }
             
             return UIMenu(title: "", children: [pinAction, editAction, deleteAction])

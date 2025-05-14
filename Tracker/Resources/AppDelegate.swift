@@ -18,10 +18,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window?.rootViewController = OnboardingViewController()
         window?.makeKeyAndVisible()
         
-        
-        guard let configuration = YMMYandexMetricaConfiguration(apiKey: "API_KEY") else { // используйте ваш ключ
-                return true
-            }
+        // Активация Яндекс.Метрики
+        let configuration = YMMYandexMetricaConfiguration(apiKey: "236fc182-9bff-43a0-917b-c0b67d89af3f")
+        YMMYandexMetrica.activate(with: configuration!)
         
         return true
     }

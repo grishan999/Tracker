@@ -15,6 +15,15 @@ final class MainTabBarController: UITabBarController {
         
         view.backgroundColor = UIColor(named: "ViewBackgroundColor")
     }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        AnalyticsService.shared.report(event: "open", screen: "Main")
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        AnalyticsService.shared.report(event: "close", screen: "Main")
+    }
     
     private func setupTabs() {
         
