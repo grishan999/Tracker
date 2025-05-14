@@ -21,6 +21,8 @@ final class TrackerReductionViewController: UIViewController {
     private var selectedColor: UIColor?
     private var daysCount: Int = 0
     
+    private let keyboardManager: KeyboardManageable
+    
     private let emojies = [
         "🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓",
         "🥇", "🎸", "🏝️", "😪",
@@ -167,10 +169,15 @@ final class TrackerReductionViewController: UIViewController {
     }()
     
     
-    init(trackerToEdit: Tracker, category: TrackerCategory?, daysCount: Int) {
+    init(trackerToEdit: Tracker,
+         category: TrackerCategory?,
+         daysCount: Int,
+         keyboardManager: KeyboardManageable = KeyboardManager()
+    ) {
         self.trackerToEdit = trackerToEdit
         self.selectedCategory = category
         self.daysCount = daysCount
+        self.keyboardManager = keyboardManager
         super.init(nibName: nil, bundle: nil)
         
         trackerNameTextField.text = trackerToEdit.title

@@ -21,6 +21,8 @@ final class CategoryCreationViewController: UIViewController {
     private let starImage = UIImageView()
     private let questionLabel = UILabel()
     
+    private let keyboardManager: KeyboardManageable
+    
     private lazy var placeholderView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -54,9 +56,11 @@ final class CategoryCreationViewController: UIViewController {
     
     init(
         viewModel: CategoryCreationViewModel = CategoryCreationViewModel(),
-        onCategorySelected: ((TrackerCategory) -> Void)?
+        onCategorySelected: ((TrackerCategory) -> Void)?,
+        keyboardManager: KeyboardManageable = KeyboardManager()
     ) {
         self.viewModel = viewModel
+        self.keyboardManager = keyboardManager
         self.onCategorySelected = onCategorySelected
         super.init(nibName: nil, bundle: nil)
     }

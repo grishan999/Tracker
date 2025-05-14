@@ -76,4 +76,5 @@ final class CategoryCreationViewModel {
         trackerCategoryStore.deleteCategory(category)
         loadCategories()
     }
+    
 }

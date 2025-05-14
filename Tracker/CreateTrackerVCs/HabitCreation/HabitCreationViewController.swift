@@ -23,6 +23,7 @@ final class HabitCreationViewController: UIViewController {
     private var schedule: Set<Day> = []
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
+    private let keyboardManager: KeyboardManageable
     
     private let emojies = [
         "🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓",
@@ -166,12 +167,16 @@ final class HabitCreationViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         
-        navigationController?.navigationBar.tintColor = UIColor(
-            named: "CustomBlack")
-        navigationItem.title = NSLocalizedString("new.habit.vc.title",
-                                                 comment: "Название вьюшки Новая привычка")
+        navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
+        navigationItem.title = NSLocalizedString("new.habit.vc.title", comment: "Название вьюшки Новая привычка")
         
         setupUI()
+        setupKeyboard()
+    }
+    
+    private func setupKeyboard() {
+        keyboardManager.setupKeyboardDismissal(for: view)
+        keyboardManager.registerTextField(habitNameTextField)
     }
     
     private func setupUI() {
@@ -238,6 +243,17 @@ final class HabitCreationViewController: UIViewController {
             buttonsStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
             buttonsStackView.heightAnchor.constraint(equalToConstant: 60),
         ])
+    }
+    
+    init(
+        keyboardManager: KeyboardManageable = KeyboardManager()
+    ) {
+        self.keyboardManager = keyboardManager
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     @objc private func textFieldDidChange() {

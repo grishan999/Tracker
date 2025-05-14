@@ -28,6 +28,8 @@ final class TrackersViewController: UIViewController {
     private var hiddenCategories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
     
+    private let keyboardManager: KeyboardManageable
+    
     var currentDate: Date = Calendar.current.startOfDay(for: Date())
     
     lazy var cellWidth = ceil(
@@ -98,6 +100,23 @@ final class TrackersViewController: UIViewController {
         ])
         
         updatePlaceholderVisibility()
+        setupKeyboard()
+    }
+    
+    init(
+        keyboardManager: KeyboardManageable = KeyboardManager()
+    ) {
+        self.keyboardManager = keyboardManager
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupKeyboard() {
+        keyboardManager.setupKeyboardDismissal(for: view)
+        
     }
     
     private func setupCollectionView() {
@@ -157,55 +176,30 @@ final class TrackersViewController: UIViewController {
     
     private func setupSearchBar() {
         searchBar.searchBarStyle = .minimal
+        searchBar.delegate = self
         searchBar.tintColor = UIColor(named: "SearchColor")
+        searchBar.placeholder = NSLocalizedString("searchBar.placeholder",
+                                                  comment: "Плейсхолдер Поиск")
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(searchBar)
         
-        if let textField = searchBar.value(forKey: "searchField")
-            as? UITextField
-        {
+        if let textField = searchBar.value(forKey: "searchField") as? UITextField {
             textField.layer.cornerRadius = 10
             textField.layer.masksToBounds = true
             textField.backgroundColor = UIColor(named: "SearchColor")
             textField.font = UIFont(name: "YS Display Medium", size: 17)
-            
-            textField.attributedPlaceholder = NSAttributedString(
-                string: NSLocalizedString("searchBar.placeholder",
-                                          comment: "Плейсхолдер Поиск"),
-                attributes: [
-                    .foregroundColor: UIColor(named: "CustomGray") ?? .gray,
-                    .font: UIFont(name: "YS Display Medium", size: 17)
-                    ?? UIFont.systemFont(ofSize: 17),
-                ]
-            )
-            
-            textField.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                textField.heightAnchor.constraint(equalToConstant: 36),
-                textField.leadingAnchor.constraint(
-                    equalTo: searchBar.leadingAnchor),
-                textField.trailingAnchor.constraint(
-                    equalTo: searchBar.trailingAnchor),
-                textField.centerYAnchor.constraint(
-                    equalTo: searchBar.centerYAnchor),
-            ])
-            
-            textField.delegate = self
+            textField.textColor = UIColor(named: "CustomBlack")
             
             if let glassIconView = textField.leftView as? UIImageView {
-                glassIconView.image = glassIconView.image?.withRenderingMode(
-                    .alwaysTemplate)
-                glassIconView.tintColor = .gray
+                glassIconView.image = glassIconView.image?.withRenderingMode(.alwaysTemplate)
+                glassIconView.tintColor = UIColor(named: "CustomGray")
             }
         }
         
         NSLayoutConstraint.activate([
-            searchBar.topAnchor.constraint(
-                equalTo: headerLabel.bottomAnchor, constant: 7),
-            searchBar.leadingAnchor.constraint(
-                equalTo: view.leadingAnchor, constant: 16),
-            searchBar.trailingAnchor.constraint(
-                equalTo: view.trailingAnchor, constant: -16),
+            searchBar.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 7),
+            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             searchBar.heightAnchor.constraint(equalToConstant: 36),
         ])
     }
@@ -377,7 +371,7 @@ final class TrackersViewController: UIViewController {
         
         for tracker in filteredTrackers where !tracker.isPinned {
             let shouldShowBySearch = searchText.isEmpty ||
-            tracker.title.lowercased().contains(searchText.lowercased())
+            tracker.title.localizedCaseInsensitiveContains(searchText)
             
             if shouldShowBySearch {
                 categorizedTrackers[tracker.category.title, default: []].append(tracker)

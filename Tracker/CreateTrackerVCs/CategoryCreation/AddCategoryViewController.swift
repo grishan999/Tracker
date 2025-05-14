@@ -29,6 +29,8 @@ final class AddCategoryViewController: UIViewController {
         static let bottomPadding: CGFloat = -16
     }
     
+    private let keyboardManager: KeyboardManageable
+    
     private let onAddCategory: (String) -> Void
     
     private lazy var textField: UITextField = {
@@ -54,7 +56,11 @@ final class AddCategoryViewController: UIViewController {
         return button
     }()
     
-    init(onAddCategory: @escaping (String) -> Void) {
+    init(
+        keyboardManager: KeyboardManageable = KeyboardManager(),
+        onAddCategory: @escaping (String) -> Void
+    ) {
+        self.keyboardManager = keyboardManager
         self.onAddCategory = onAddCategory
         super.init(nibName: nil, bundle: nil)
     }
@@ -71,7 +77,14 @@ final class AddCategoryViewController: UIViewController {
            setupUI()
            setupTextFieldObserver()
            updateAddButtonState()
+        
+        setupKeyboard()
        }
+    
+    private func setupKeyboard() {
+        keyboardManager.setupKeyboardDismissal(for: view)
+        keyboardManager.registerTextField(textField)
+    }
 
        private func setupTextFieldObserver() {
            textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)

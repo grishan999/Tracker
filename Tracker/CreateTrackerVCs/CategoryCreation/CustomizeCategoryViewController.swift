@@ -11,6 +11,7 @@ final class CustomizeCategoryViewController: UIViewController {
     private let viewModel: CategoryCreationViewModel
     private let categoryIndex: Int
     private let initialTitle: String
+    private let keyboardManager: KeyboardManageable
     
     private lazy var textField: UITextField = {
         let textField = UITextField()
@@ -42,8 +43,13 @@ final class CustomizeCategoryViewController: UIViewController {
         return button
     }()
     
-    init(viewModel: CategoryCreationViewModel, categoryIndex: Int, initialTitle: String) {
+    init(viewModel: CategoryCreationViewModel,
+         categoryIndex: Int,
+         initialTitle: String,
+         keyboardManager: KeyboardManageable = KeyboardManager()
+    ) {
         self.viewModel = viewModel
+        self.keyboardManager = keyboardManager
         self.categoryIndex = categoryIndex
         self.initialTitle = initialTitle
         super.init(nibName: nil, bundle: nil)
@@ -57,6 +63,11 @@ final class CustomizeCategoryViewController: UIViewController {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func setupKeyboard() {
+        keyboardManager.setupKeyboardDismissal(for: view)
+        keyboardManager.registerTextField(textField)
     }
     
     override func viewDidLoad() {
@@ -88,6 +99,7 @@ final class CustomizeCategoryViewController: UIViewController {
         ])
         
         textField.becomeFirstResponder()
+        setupKeyboard()
     }
     
     @objc private func textFieldDidChange() {

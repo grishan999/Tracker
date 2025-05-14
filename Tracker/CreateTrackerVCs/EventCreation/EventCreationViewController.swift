@@ -20,6 +20,7 @@ final class EventCreationViewController: UIViewController {
     private var selectedCategory: TrackerCategory?
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
+    private let keyboardManager: KeyboardManageable
     
     private let emojies = [
         "🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓",
@@ -167,6 +168,12 @@ final class EventCreationViewController: UIViewController {
                                                  comment: "Название вьюшки Новое нерегулярное событие")
         
         setupUI()
+        setupKeyboard()
+    }
+    
+    private func setupKeyboard() {
+        keyboardManager.setupKeyboardDismissal(for: view)
+        keyboardManager.registerTextField(eventNameTextField)
     }
     
     private func setupUI() {
@@ -233,6 +240,17 @@ final class EventCreationViewController: UIViewController {
             buttonsStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
             buttonsStackView.heightAnchor.constraint(equalToConstant: 60),
         ])
+    }
+    
+    init(
+            keyboardManager: KeyboardManageable = KeyboardManager()
+        ) {
+            self.keyboardManager = keyboardManager
+            super.init(nibName: nil, bundle: nil)
+        }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     @objc private func textFieldDidChange() {
