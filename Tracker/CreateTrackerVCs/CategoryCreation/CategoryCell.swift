@@ -70,13 +70,12 @@ final class CategoryCell: UITableViewCell {
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil)
         { _ -> UIMenu? in
             let edit = UIAction(
-                title: "Редактировать", image: UIImage(systemName: "pencil")
             ) { _ in
                 self.onEdit?()
             }
 
             let delete = UIAction(
-                title: "Удалить", image: UIImage(systemName: "trash"),
+                title: "Удалить",
                 attributes: .destructive
             ) { _ in
                 self.onDelete?()

@@ -10,12 +10,14 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
     
     private lazy var goFurtherButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("Вот это технологии!", for: .normal)
-        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        button.setTitle(NSLocalizedString("onboarding.button",
+                                        comment: "Текст кнопки на экране онбординга"),
+                      for: .normal)
+        button.setTitleColor(UIColor(named: "OnboardingWhite"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
         button.layer.borderWidth = 1
-        button.backgroundColor = UIColor(named: "CustomBlack")
+        button.backgroundColor = UIColor(named: "OnboardingBlack")
         button.addTarget(self, action: #selector(goFurtherButtonTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button

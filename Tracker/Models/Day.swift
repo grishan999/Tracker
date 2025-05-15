@@ -17,28 +17,32 @@ enum Day: Int, CaseIterable {
     case sunday = 7
     
     var localizedName: String {
-        switch self {
-        case .monday: return "Понедельник"
-        case .tuesday: return "Вторник"
-        case .wednesday: return "Среда"
-        case .thursday: return "Четверг"
-        case .friday: return "Пятница"
-        case .saturday: return "Суббота"
-        case .sunday: return "Воскресенье"
-        }
-    }
-    
-    var shortName: String {
-        switch self {
-        case .monday: return "Пн"
-        case .tuesday: return "Вт"
-        case .wednesday: return "Ср"
-        case .thursday: return "Чт"
-        case .friday: return "Пт"
-        case .saturday: return "Сб"
-        case .sunday: return "Вс"
-        }
-    }
+           let key: String
+           switch self {
+           case .monday: key = "weekday.monday.full"
+           case .tuesday: key = "weekday.tuesday.full"
+           case .wednesday: key = "weekday.wednesday.full"
+           case .thursday: key = "weekday.thursday.full"
+           case .friday: key = "weekday.friday.full"
+           case .saturday: key = "weekday.saturday.full"
+           case .sunday: key = "weekday.sunday.full"
+           }
+           return NSLocalizedString(key, comment: "Полное название дня недели")
+       }
+       
+       var shortName: String {
+           let key: String
+           switch self {
+           case .monday: key = "weekday.monday.short"
+           case .tuesday: key = "weekday.tuesday.short"
+           case .wednesday: key = "weekday.wednesday.short"
+           case .thursday: key = "weekday.thursday.short"
+           case .friday: key = "weekday.friday.short"
+           case .saturday: key = "weekday.saturday.short"
+           case .sunday: key = "weekday.sunday.short"
+           }
+           return NSLocalizedString(key, comment: "Сокращенное название дня недели")
+       }
     
     var calendarDayNumber: Int {
         switch self {
