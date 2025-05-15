@@ -8,6 +8,14 @@
 import UIKit
 import CoreData
 
+enum Localization {
+    static let bestPeriod = NSLocalizedString("best.period", comment: "Лучший период")
+    static let idealDays = NSLocalizedString("ideal.days", comment: "Идеальные дни")
+    static let completedTrackers = NSLocalizedString("completed.trackers", comment: "Трекеров завершено")
+    static let statisticHeader = NSLocalizedString("statistic.header", comment: "Заголовок Статистика на главном экране")
+    static let emptyStateTitle = NSLocalizedString("emptyState.statistic.title", comment: "Заглушка на пустом экране Отслеживания")
+}
+
 final class StatisticViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     private let navigationContainer = UIView()
@@ -27,6 +35,8 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
     private let completedTrackersTextLabel = UILabel()
     
     private let statsStackView = UIStackView()
+    
+    private let calendar = Calendar.current
     
     private let trackerRecordStore = TrackerRecordStore()
     private let trackerStore = TrackerStore()
@@ -51,21 +61,21 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
         let allTrackers = trackerStore.fetchTrackers()
         let completedDates = fetchAllCompletedDates().sorted()
         let allCompletedTrackers = trackerRecordStore.fetchedResultsController?.fetchedObjects?.count ?? 0
-
+        
         var idealDays = 0
         var bestPeriod = 0
         var currentStreak = 0
         var previousDate: Date?
-
+        
         for date in completedDates {
             guard areAllTrackersCompleted(on: date, trackers: allTrackers) else {
                 currentStreak = 0
                 previousDate = nil
                 continue
             }
-
+            
             idealDays += 1
-
+            
             if let prev = previousDate,
                let nextDay = calendar.date(byAdding: .day, value: 1, to: prev),
                calendar.isDate(date, inSameDayAs: nextDay) {
@@ -73,46 +83,50 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
             } else {
                 currentStreak = 1
             }
-
+            
             bestPeriod = max(bestPeriod, currentStreak)
             previousDate = date
         }
-
+        
         return (idealDays, bestPeriod, allCompletedTrackers)
     }
-
+    
     private func fetchAllCompletedDates() -> [Date] {
         guard let records = trackerRecordStore.fetchedResultsController?.fetchedObjects else { return [] }
-        let calendar = Calendar.current
-        let uniqueDates = Set(records.map { calendar.startOfDay(for: $0.date!) })
+        
+        let dates = records.compactMap { $0.date }
+        let uniqueDates = Set(dates.map { calendar.startOfDay(for: $0) })
+        
         return Array(uniqueDates).sorted()
     }
-
+    
+    
     private func areAllTrackersCompleted(on date: Date, trackers: [Tracker]) -> Bool {
-        let calendar = Calendar.current
         let weekday = calendar.component(.weekday, from: date)
         let completedTrackerIDs = Set(trackerRecordStore.fetchCompletedTrackerIDs(for: date))
-
+        
         let scheduledTrackers = trackers.filter { tracker in
             tracker.schedule.isEmpty || tracker.schedule.contains(where: { $0.calendarDayNumber == weekday })
         }
-
+        
         return !scheduledTrackers.isEmpty && scheduledTrackers.allSatisfy { completedTrackerIDs.contains($0.id) }
     }
     
     private func updateStatistics() {
         let stats = calculateStatistics()
-        periodNumberLabel.text = "\(stats.bestPeriod)"
-        idealDaysNumberLabel.text = "\(stats.idealDays)"
-        completedTrackersNumberLabel.text = "\(stats.completedTrackers)"
         
-        let allValuesZero = stats.bestPeriod == 0 && stats.idealDays == 0 && stats.completedTrackers == 0
-        updateUI(hasData: !allValuesZero)
+        DispatchQueue.main.async {
+            self.periodNumberLabel.text = "\(stats.bestPeriod)"
+            self.idealDaysNumberLabel.text = "\(stats.idealDays)"
+            self.completedTrackersNumberLabel.text = "\(stats.completedTrackers)"
+            
+            let allValuesZero = stats.bestPeriod == 0 && stats.idealDays == 0 && stats.completedTrackers == 0
+            self.updateUI(hasData: !allValuesZero)
+        }
     }
-
+    
     private func setupUI() {
         view.addSubview(placeholderView)
-        view.addSubview(navigationContainer)
         view.addSubview(statsStackView)
         
         NSLayoutConstraint.activate([
@@ -127,13 +141,13 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
     
     private func setupCards() {
         setupCardView(periodCardView, numberLabel: periodNumberLabel, textLabel: periodTextLabel,
-                     text: NSLocalizedString("best.period", comment: "Лучший период"))
+                      text: Localization.bestPeriod)
         
         setupCardView(idealDaysCardView, numberLabel: idealDaysNumberLabel, textLabel: idealDaysTextLabel,
-                     text: NSLocalizedString("ideal.days", comment: "Идеальные дни"))
+                      text: Localization.idealDays)
         
         setupCardView(completedTrackersCardView, numberLabel: completedTrackersNumberLabel, textLabel: completedTrackersTextLabel,
-                     text: NSLocalizedString("completed.trackers", comment: "Трекеров завершено"))
+                      text: Localization.completedTrackers)
     }
     
     private func applyGradientBorder(to view: UIView, colors: [CGColor], cornerRadius: CGFloat, borderWidth: CGFloat) {
@@ -143,41 +157,41 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
         gradientLayer.startPoint = CGPoint(x: 0, y: 0)
         gradientLayer.endPoint = CGPoint(x: 1, y: 0)
         gradientLayer.cornerRadius = cornerRadius
-
+        
         let shapeLayer = CAShapeLayer()
         shapeLayer.lineWidth = borderWidth
         shapeLayer.path = UIBezierPath(roundedRect: view.bounds.insetBy(dx: borderWidth / 2,
                                                                         dy: borderWidth / 2),
                                        cornerRadius: cornerRadius).cgPath
         shapeLayer.fillColor = UIColor.clear.cgColor
-       shapeLayer.strokeColor = UIColor.black.cgColor
+        shapeLayer.strokeColor = UIColor.black.cgColor
         gradientLayer.mask = shapeLayer
-
+        
         view.layer.addSublayer(gradientLayer)
     }
     
     private func setupCardView(_ cardView: UIView, numberLabel: UILabel, textLabel: UILabel, text: String) {
-        cardView.layer.cornerRadius = 12
+        cardView.layer.cornerRadius = 16
         cardView.clipsToBounds = true
         cardView.translatesAutoresizingMaskIntoConstraints = false
-
+        
         numberLabel.text = "0"
         numberLabel.font = UIFont.systemFont(ofSize: 34, weight: .bold)
         numberLabel.textAlignment = .left
         numberLabel.textColor = UIColor(named: "CustomBlack")
-
+        
         textLabel.text = text
         textLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         textLabel.textAlignment = .left
         textLabel.textColor = UIColor(named: "CustomBlack")
-
+        
         let stack = UIStackView(arrangedSubviews: [numberLabel, textLabel])
         stack.axis = .vertical
         stack.spacing = 12
         stack.translatesAutoresizingMaskIntoConstraints = false
-
+        
         cardView.addSubview(stack)
-
+        
         NSLayoutConstraint.activate([
             stack.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
             stack.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
@@ -185,7 +199,7 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
             stack.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
             cardView.heightAnchor.constraint(equalToConstant: 90)
         ])
-
+        
         DispatchQueue.main.async {
             self.applyGradientBorder(
                 to: cardView,
@@ -199,7 +213,7 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
             )
         }
     }
-
+    
     private func setupStatsStack() {
         statsStackView.axis = .vertical
         statsStackView.spacing = 12
@@ -237,8 +251,7 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
         ])
         
         let titleLabel = UILabel()
-        titleLabel.text = NSLocalizedString("statistic.header",
-                                          comment: "Заголовок Статистика на главном экране")
+        titleLabel.text = Localization.statisticHeader
         titleLabel.font = UIFont(name: "YS Display Bold", size: 34)
         titleLabel.textColor = UIColor(named: "CustomBlack")
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -271,8 +284,7 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
     }
     
     private func setupErrorLabel() {
-        errorLabel.text = NSLocalizedString("emptyState.statistic.title",
-                                          comment: "Заглушка на пустом экране Отслеживания")
+        errorLabel.text = Localization.emptyStateTitle
         errorLabel.font = UIFont(name: "YS Display Medium", size: 12)
         errorLabel.textColor = UIColor(named: "CustomBlack")
         errorLabel.translatesAutoresizingMaskIntoConstraints = false
