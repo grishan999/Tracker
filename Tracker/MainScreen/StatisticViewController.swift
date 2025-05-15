@@ -106,7 +106,6 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
         idealDaysNumberLabel.text = "\(stats.idealDays)"
         completedTrackersNumberLabel.text = "\(stats.completedTrackers)"
         
-        // Проверяем, все ли значения равны 0
         let allValuesZero = stats.bestPeriod == 0 && stats.idealDays == 0 && stats.completedTrackers == 0
         updateUI(hasData: !allValuesZero)
     }
@@ -137,29 +136,48 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
                      text: NSLocalizedString("completed.trackers", comment: "Трекеров завершено"))
     }
     
+    private func applyGradientBorder(to view: UIView, colors: [CGColor], cornerRadius: CGFloat, borderWidth: CGFloat) {
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.frame = view.bounds
+        gradientLayer.colors = colors
+        gradientLayer.startPoint = CGPoint(x: 0, y: 0)
+        gradientLayer.endPoint = CGPoint(x: 1, y: 0)
+        gradientLayer.cornerRadius = cornerRadius
+
+        let shapeLayer = CAShapeLayer()
+        shapeLayer.lineWidth = borderWidth
+        shapeLayer.path = UIBezierPath(roundedRect: view.bounds.insetBy(dx: borderWidth / 2,
+                                                                        dy: borderWidth / 2),
+                                       cornerRadius: cornerRadius).cgPath
+        shapeLayer.fillColor = UIColor.clear.cgColor
+       shapeLayer.strokeColor = UIColor.black.cgColor
+        gradientLayer.mask = shapeLayer
+
+        view.layer.addSublayer(gradientLayer)
+    }
+    
     private func setupCardView(_ cardView: UIView, numberLabel: UILabel, textLabel: UILabel, text: String) {
-        cardView.layer.borderWidth = 1
-        cardView.layer.borderColor = UIColor.lightGray.cgColor
         cardView.layer.cornerRadius = 12
+        cardView.clipsToBounds = true
         cardView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         numberLabel.text = "0"
         numberLabel.font = UIFont.systemFont(ofSize: 34, weight: .bold)
-        numberLabel.textAlignment = .center
+        numberLabel.textAlignment = .left
         numberLabel.textColor = UIColor(named: "CustomBlack")
-        
+
         textLabel.text = text
         textLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        textLabel.textAlignment = .center
+        textLabel.textAlignment = .left
         textLabel.textColor = UIColor(named: "CustomBlack")
-        
+
         let stack = UIStackView(arrangedSubviews: [numberLabel, textLabel])
         stack.axis = .vertical
-        stack.spacing = 4
+        stack.spacing = 12
         stack.translatesAutoresizingMaskIntoConstraints = false
-        
+
         cardView.addSubview(stack)
-        
+
         NSLayoutConstraint.activate([
             stack.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
             stack.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
@@ -167,8 +185,21 @@ final class StatisticViewController: UIViewController, NSFetchedResultsControlle
             stack.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
             cardView.heightAnchor.constraint(equalToConstant: 90)
         ])
+
+        DispatchQueue.main.async {
+            self.applyGradientBorder(
+                to: cardView,
+                colors: [
+                    UIColor(named: "BlueGradient")?.cgColor,
+                    UIColor(named: "GreenGradient")?.cgColor,
+                    UIColor(named: "RedGradient")?.cgColor
+                ].compactMap { $0 },
+                cornerRadius: 16,
+                borderWidth: 2
+            )
+        }
     }
-    
+
     private func setupStatsStack() {
         statsStackView.axis = .vertical
         statsStackView.spacing = 12
