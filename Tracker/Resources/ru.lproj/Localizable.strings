@@ -52,6 +52,9 @@
 "delete.tracker.alert" = "Уверены что хотите удалить трекер?";
 "cancel.alert.button" = "Отменить";
 "pinned" = "Закрепленные";
+"ideal.days" = "Идеальные дни";
+"best.period" = "Лучший период";
+"completed.trackers" = "Трекеров завершено";
 
 "weekday.monday.full" = "Понедельник";
 "weekday.tuesday.full" = "Вторник";

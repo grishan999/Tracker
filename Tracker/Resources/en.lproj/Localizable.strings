@@ -52,6 +52,9 @@
 "delete.tracker.alert" = "Are you sure you want to remove the tracker?";
 "cancel.alert.button" = "Cancel";
 "pinned" = "Pinned";
+"ideal.days" = "Perfect days";
+"best.period" = "Best period";
+"completed.trackers" = "Completed trackers";
 
 "weekday.monday.full" = "Monday";
 "weekday.tuesday.full" = "Tuesday";

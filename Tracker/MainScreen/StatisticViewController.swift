@@ -6,8 +6,9 @@
 //
 
 import UIKit
+import CoreData
 
-final class StatisticViewController: UIViewController {
+final class StatisticViewController: UIViewController, NSFetchedResultsControllerDelegate {
     
     private let navigationContainer = UIView()
     private let statisticErrorImage = UIImageView()
@@ -21,7 +22,14 @@ final class StatisticViewController: UIViewController {
     private let idealDaysNumberLabel = UILabel()
     private let idealDaysTextLabel = UILabel()
     
+    private let completedTrackersCardView = UIView()
+    private let completedTrackersNumberLabel = UILabel()
+    private let completedTrackersTextLabel = UILabel()
+    
     private let statsStackView = UIStackView()
+    
+    private let trackerRecordStore = TrackerRecordStore()
+    private let trackerStore = TrackerStore()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,9 +38,79 @@ final class StatisticViewController: UIViewController {
         setupCards()
         setupStatsStack()
         
-        updateUI(hasData: true)
+        updateStatistics()
+        trackerRecordStore.delegate = self
     }
     
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        updateStatistics()
+    }
+    
+    private func calculateStatistics() -> (idealDays: Int, bestPeriod: Int, completedTrackers: Int) {
+        let calendar = Calendar.current
+        let allTrackers = trackerStore.fetchTrackers()
+        let completedDates = fetchAllCompletedDates().sorted()
+        let allCompletedTrackers = trackerRecordStore.fetchedResultsController?.fetchedObjects?.count ?? 0
+
+        var idealDays = 0
+        var bestPeriod = 0
+        var currentStreak = 0
+        var previousDate: Date?
+
+        for date in completedDates {
+            guard areAllTrackersCompleted(on: date, trackers: allTrackers) else {
+                currentStreak = 0
+                previousDate = nil
+                continue
+            }
+
+            idealDays += 1
+
+            if let prev = previousDate,
+               let nextDay = calendar.date(byAdding: .day, value: 1, to: prev),
+               calendar.isDate(date, inSameDayAs: nextDay) {
+                currentStreak += 1
+            } else {
+                currentStreak = 1
+            }
+
+            bestPeriod = max(bestPeriod, currentStreak)
+            previousDate = date
+        }
+
+        return (idealDays, bestPeriod, allCompletedTrackers)
+    }
+
+    private func fetchAllCompletedDates() -> [Date] {
+        guard let records = trackerRecordStore.fetchedResultsController?.fetchedObjects else { return [] }
+        let calendar = Calendar.current
+        let uniqueDates = Set(records.map { calendar.startOfDay(for: $0.date!) })
+        return Array(uniqueDates).sorted()
+    }
+
+    private func areAllTrackersCompleted(on date: Date, trackers: [Tracker]) -> Bool {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        let completedTrackerIDs = Set(trackerRecordStore.fetchCompletedTrackerIDs(for: date))
+
+        let scheduledTrackers = trackers.filter { tracker in
+            tracker.schedule.isEmpty || tracker.schedule.contains(where: { $0.calendarDayNumber == weekday })
+        }
+
+        return !scheduledTrackers.isEmpty && scheduledTrackers.allSatisfy { completedTrackerIDs.contains($0.id) }
+    }
+    
+    private func updateStatistics() {
+        let stats = calculateStatistics()
+        periodNumberLabel.text = "\(stats.bestPeriod)"
+        idealDaysNumberLabel.text = "\(stats.idealDays)"
+        completedTrackersNumberLabel.text = "\(stats.completedTrackers)"
+        
+        // Проверяем, все ли значения равны 0
+        let allValuesZero = stats.bestPeriod == 0 && stats.idealDays == 0 && stats.completedTrackers == 0
+        updateUI(hasData: !allValuesZero)
+    }
+
     private func setupUI() {
         view.addSubview(placeholderView)
         view.addSubview(navigationContainer)
@@ -49,66 +127,45 @@ final class StatisticViewController: UIViewController {
     }
     
     private func setupCards() {
-        // Настройка карточки периода
-        periodCardView.layer.borderWidth = 1
-        periodCardView.layer.borderColor = UIColor.lightGray.cgColor
-        periodCardView.layer.cornerRadius = 12
-        periodCardView.translatesAutoresizingMaskIntoConstraints = false
+        setupCardView(periodCardView, numberLabel: periodNumberLabel, textLabel: periodTextLabel,
+                     text: NSLocalizedString("best.period", comment: "Лучший период"))
         
-        periodNumberLabel.text = "0"
-        periodNumberLabel.font = UIFont.systemFont(ofSize: 34, weight: .bold)
-        periodNumberLabel.textAlignment = .center
-        periodNumberLabel.textColor = UIColor(named: "CustomBlack")
+        setupCardView(idealDaysCardView, numberLabel: idealDaysNumberLabel, textLabel: idealDaysTextLabel,
+                     text: NSLocalizedString("ideal.days", comment: "Идеальные дни"))
         
-        periodTextLabel.text = "Лучший период"
-        periodTextLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        periodTextLabel.textAlignment = .center
-        periodTextLabel.textColor = UIColor(named: "CustomBlack")
+        setupCardView(completedTrackersCardView, numberLabel: completedTrackersNumberLabel, textLabel: completedTrackersTextLabel,
+                     text: NSLocalizedString("completed.trackers", comment: "Трекеров завершено"))
+    }
+    
+    private func setupCardView(_ cardView: UIView, numberLabel: UILabel, textLabel: UILabel, text: String) {
+        cardView.layer.borderWidth = 1
+        cardView.layer.borderColor = UIColor.lightGray.cgColor
+        cardView.layer.cornerRadius = 12
+        cardView.translatesAutoresizingMaskIntoConstraints = false
         
-        let periodStack = UIStackView(arrangedSubviews: [periodNumberLabel, periodTextLabel])
-        periodStack.axis = .vertical
-        periodStack.spacing = 4
-        periodStack.translatesAutoresizingMaskIntoConstraints = false
+        numberLabel.text = "0"
+        numberLabel.font = UIFont.systemFont(ofSize: 34, weight: .bold)
+        numberLabel.textAlignment = .center
+        numberLabel.textColor = UIColor(named: "CustomBlack")
         
-        periodCardView.addSubview(periodStack)
+        textLabel.text = text
+        textLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        textLabel.textAlignment = .center
+        textLabel.textColor = UIColor(named: "CustomBlack")
         
-        NSLayoutConstraint.activate([
-            periodStack.centerXAnchor.constraint(equalTo: periodCardView.centerXAnchor),
-            periodStack.centerYAnchor.constraint(equalTo: periodCardView.centerYAnchor),
-            periodStack.leadingAnchor.constraint(equalTo: periodCardView.leadingAnchor, constant: 16),
-            periodStack.trailingAnchor.constraint(equalTo: periodCardView.trailingAnchor, constant: -16),
-            periodCardView.heightAnchor.constraint(equalToConstant: 90)
-        ])
+        let stack = UIStackView(arrangedSubviews: [numberLabel, textLabel])
+        stack.axis = .vertical
+        stack.spacing = 4
+        stack.translatesAutoresizingMaskIntoConstraints = false
         
-        // Настройка карточки идеальных дней (аналогично)
-        idealDaysCardView.layer.borderWidth = 1
-        idealDaysCardView.layer.borderColor = UIColor.lightGray.cgColor
-        idealDaysCardView.layer.cornerRadius = 12
-        idealDaysCardView.translatesAutoresizingMaskIntoConstraints = false
-        
-        idealDaysNumberLabel.text = "0"
-        idealDaysNumberLabel.font = UIFont.systemFont(ofSize: 34, weight: .bold)
-        idealDaysNumberLabel.textAlignment = .center
-        idealDaysNumberLabel.textColor = UIColor(named: "CustomBlack")
-        
-        idealDaysTextLabel.text = "Идеальные дни"
-        idealDaysTextLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
-        idealDaysTextLabel.textAlignment = .center
-        idealDaysTextLabel.textColor = UIColor(named: "CustomBlack")
-        
-        let idealDaysStack = UIStackView(arrangedSubviews: [idealDaysNumberLabel, idealDaysTextLabel])
-        idealDaysStack.axis = .vertical
-        idealDaysStack.spacing = 4
-        idealDaysStack.translatesAutoresizingMaskIntoConstraints = false
-        
-        idealDaysCardView.addSubview(idealDaysStack)
+        cardView.addSubview(stack)
         
         NSLayoutConstraint.activate([
-            idealDaysStack.centerXAnchor.constraint(equalTo: idealDaysCardView.centerXAnchor),
-            idealDaysStack.centerYAnchor.constraint(equalTo: idealDaysCardView.centerYAnchor),
-            idealDaysStack.leadingAnchor.constraint(equalTo: idealDaysCardView.leadingAnchor, constant: 16),
-            idealDaysStack.trailingAnchor.constraint(equalTo: idealDaysCardView.trailingAnchor, constant: -16),
-            idealDaysCardView.heightAnchor.constraint(equalToConstant: 90)
+            stack.centerXAnchor.constraint(equalTo: cardView.centerXAnchor),
+            stack.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
+            stack.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
+            stack.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
+            cardView.heightAnchor.constraint(equalToConstant: 90)
         ])
     }
     
@@ -121,6 +178,7 @@ final class StatisticViewController: UIViewController {
         
         statsStackView.addArrangedSubview(periodCardView)
         statsStackView.addArrangedSubview(idealDaysCardView)
+        statsStackView.addArrangedSubview(completedTrackersCardView)
         
         NSLayoutConstraint.activate([
             statsStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -130,7 +188,6 @@ final class StatisticViewController: UIViewController {
         ])
     }
     
-    // Функция для показа/скрытия плейсхолдера
     func updateUI(hasData: Bool) {
         placeholderView.isHidden = hasData
         statsStackView.isHidden = !hasData
