@@ -40,14 +40,22 @@ final class TrackerStore: NSObject {
             return []
         }
         
-        return trackersCoreData.compactMap { coreData in
+        return trackersCoreData.compactMap { coreData -> Tracker? in
             guard let id = coreData.id,
                   let title = coreData.title,
                   let emoji = coreData.emoji,
-                  let colorHex = coreData.color,
-                  let color = UIColor(hex: colorHex),
-                  let category = coreData.category,
+                  let colorHex = coreData.color else {
+                return nil
+            }
+            
+            guard let color = UIColor(hex: colorHex) else {
+                print("Failed to create color from hex: \(colorHex)")
+                return nil
+            }
+            
+            guard let category = coreData.category,
                   let categoryTitle = category.title else {
+                print("Category or category title is missing")
                 return nil
             }
             
@@ -59,7 +67,8 @@ final class TrackerStore: NSObject {
                 color: color,
                 emoji: emoji,
                 schedule: Set(schedule),
-                category: TrackerCategory(title: categoryTitle, trackers: [])
+                category: TrackerCategory(title: categoryTitle, trackers: []),
+                isPinned: coreData.isPinned
             )
         }
     }
@@ -89,5 +98,58 @@ final class TrackerStore: NSObject {
     
     func convertScheduleToCoreData(schedule: [Day]) -> String {
         schedule.map { String($0.rawValue) }.joined(separator: ",")
+    }
+    
+    func togglePin(for trackerID: UUID) throws {
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        request.predicate = NSPredicate(format: "id == %@", trackerID as CVarArg)
+        
+        let results = try context.fetch(request)
+        guard let trackerToUpdate = results.first else { return }
+        
+        trackerToUpdate.isPinned = !trackerToUpdate.isPinned
+        try context.save()
+    }
+    
+    func deleteTracker(with id: UUID) throws {
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        let results = try context.fetch(request)
+        guard let trackerToDelete = results.first else { return }
+        
+        context.delete(trackerToDelete)
+        try context.save()
+    }
+    
+    func updateTracker(
+        with id: UUID,
+        newTitle: String,
+        newEmoji: String,
+        newColor: UIColor,
+        newSchedule: Set<Day>,
+        newCategory: String
+    ) throws {
+        let request = NSFetchRequest<TrackerCoreData>(entityName: "TrackerCoreData")
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        let results = try context.fetch(request)
+        guard let trackerToUpdate = results.first else {
+            throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Трекер не найден"])
+        }
+        
+        trackerToUpdate.title = newTitle
+        trackerToUpdate.emoji = newEmoji
+        trackerToUpdate.color = newColor.hexString
+        trackerToUpdate.schedule = convertScheduleToCoreData(schedule: Array(newSchedule))
+        
+        let categoryRequest = NSFetchRequest<TrackerCategoryCoreData>(entityName: "TrackerCategoryCoreData")
+        categoryRequest.predicate = NSPredicate(format: "title == %@", newCategory)
+        
+        if let newCategory = try context.fetch(categoryRequest).first {
+            trackerToUpdate.category = newCategory
+        }
+        
+        try context.save()
     }
 }

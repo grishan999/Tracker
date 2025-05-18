@@ -14,9 +14,12 @@ import UIKit
 
 final class AddCategoryViewController: UIViewController {
     private enum Constants {
-        static let placeholder = "Введите название категории"
-        static let doneButtonTitle = "Готово"
-        static let navigationTitle = "Новая категория"
+        static let placeholder = NSLocalizedString("new.category.name.placeholder",
+                                                   comment: "Плейсхолдер Введите название категории")
+        static let doneButtonTitle = NSLocalizedString("new.category.button.title",
+                                                       comment: "Кнопка Новая категория")
+        static let navigationTitle = NSLocalizedString("new.category.button.title",
+                                                       comment: "Название Новая категория вьюшки")
         static let cornerRadius: CGFloat = 16
         static let textFieldHeight: CGFloat = 75
         static let buttonHeight: CGFloat = 60
@@ -25,6 +28,8 @@ final class AddCategoryViewController: UIViewController {
         static let topPadding: CGFloat = 16
         static let bottomPadding: CGFloat = -16
     }
+    
+    private let keyboardManager: KeyboardManageable
     
     private let onAddCategory: (String) -> Void
     
@@ -43,7 +48,7 @@ final class AddCategoryViewController: UIViewController {
         let button = UIButton(type: .system)
         button.setTitle(Constants.doneButtonTitle, for: .normal)
         button.titleLabel?.font = UIFont(name: "YS Display Medium", size: 16)
-        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        button.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .normal)
         button.backgroundColor = UIColor(named: "CustomBlack")
         button.layer.cornerRadius = Constants.cornerRadius
         button.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
@@ -51,7 +56,11 @@ final class AddCategoryViewController: UIViewController {
         return button
     }()
     
-    init(onAddCategory: @escaping (String) -> Void) {
+    init(
+        keyboardManager: KeyboardManageable = KeyboardManager(),
+        onAddCategory: @escaping (String) -> Void
+    ) {
+        self.keyboardManager = keyboardManager
         self.onAddCategory = onAddCategory
         super.init(nibName: nil, bundle: nil)
     }
@@ -61,12 +70,38 @@ final class AddCategoryViewController: UIViewController {
     }
     
     override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
-        navigationItem.title = Constants.navigationTitle
-        setupUI()
+           super.viewDidLoad()
+           view.backgroundColor = .systemBackground
+           navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
+           navigationItem.title = Constants.navigationTitle
+           setupUI()
+           setupTextFieldObserver()
+           updateAddButtonState()
+        
+        setupKeyboard()
+       }
+    
+    private func setupKeyboard() {
+        keyboardManager.setupKeyboardDismissal(for: view)
+        keyboardManager.registerTextField(textField)
     }
+
+       private func setupTextFieldObserver() {
+           textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+       }
+
+       @objc private func textFieldDidChange() {
+           updateAddButtonState()
+       }
+
+       private func updateAddButtonState() {
+           let isEmpty = textField.text?.isEmpty ?? true
+           addButton.isEnabled = !isEmpty
+           addButton.backgroundColor = isEmpty ? UIColor(named: "CustomGray") : UIColor(named: "CustomBlack")
+           addButton.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+           addButton.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .disabled)
+       }
+
     
     private func setupUI() {
         view.addSubview(textField)

@@ -12,6 +12,17 @@ final class MainTabBarController: UITabBarController {
         super.viewDidLoad()
         setupTabs()
         customizeTabBar()
+        
+        view.backgroundColor = UIColor(named: "ViewBackgroundColor")
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        AnalyticsService.shared.report(event: "open", screen: "Main")
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        AnalyticsService.shared.report(event: "close", screen: "Main")
     }
     
     private func setupTabs() {
@@ -19,7 +30,8 @@ final class MainTabBarController: UITabBarController {
         let trackersVC = TrackersViewController()
         let trackersNav = UINavigationController(rootViewController: trackersVC)
         trackersNav.tabBarItem = UITabBarItem(
-            title: "Трекеры",
+            title: NSLocalizedString("trackers.button.title",
+                                     comment: "Кнопка Трекеры на главном экране"),
             image: UIImage(named: "AimGrey")?.withRenderingMode(
                 .alwaysOriginal),
             selectedImage: UIImage(named: "AimBlue")?.withRenderingMode(
@@ -30,7 +42,8 @@ final class MainTabBarController: UITabBarController {
         let statisticNav = UINavigationController(
             rootViewController: statisticVC)
         statisticNav.tabBarItem = UITabBarItem(
-            title: "Статистика",
+            title: NSLocalizedString("statistic.button.title",
+                                     comment: "Кнопка Статистика на главном экране"),
             image: UIImage(named: "RabbitGrey")?.withRenderingMode(
                 .alwaysOriginal),
             selectedImage: UIImage(named: "RabbitBlue")?.withRenderingMode(
@@ -44,12 +57,12 @@ final class MainTabBarController: UITabBarController {
     private func customizeTabBar() {
         tabBar.tintColor = UIColor(named: "CustomBlue")
         tabBar.unselectedItemTintColor = .gray
-        tabBar.backgroundColor = .systemBackground
+        tabBar.backgroundColor = UIColor(named: "ViewBackgroundColor")
         
         let topBorder = CALayer()
         topBorder.frame = CGRect(
             x: 0, y: 0, width: tabBar.frame.width, height: 0.5)
-        topBorder.backgroundColor = UIColor.lightGray.cgColor
+        topBorder.backgroundColor = UIColor(named: "TabBarSelectorColor")?.cgColor
         tabBar.layer.addSublayer(topBorder)
     }
 }

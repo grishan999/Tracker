@@ -11,6 +11,7 @@ final class CustomizeCategoryViewController: UIViewController {
     private let viewModel: CategoryCreationViewModel
     private let categoryIndex: Int
     private let initialTitle: String
+    private let keyboardManager: KeyboardManageable
     
     private lazy var textField: UITextField = {
         let textField = UITextField()
@@ -27,20 +28,28 @@ final class CustomizeCategoryViewController: UIViewController {
     }()
     
     private lazy var doneButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Готово", for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.backgroundColor = UIColor(named: "CustomBlack")
-        button.setTitleColor(.white, for: .normal)
+        let button = UIButton(type: .custom)
+        button.setTitle(NSLocalizedString("done.black.button",
+                                          comment: "Кнопка Готово"),
+                        for: .normal)
+        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
+        button.layer.borderWidth = 1
+        button.backgroundColor = UIColor(named: "CustomBlack")
         button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         button.isEnabled = !initialTitle.isEmpty
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
-    init(viewModel: CategoryCreationViewModel, categoryIndex: Int, initialTitle: String) {
+    init(viewModel: CategoryCreationViewModel,
+         categoryIndex: Int,
+         initialTitle: String,
+         keyboardManager: KeyboardManageable = KeyboardManager()
+    ) {
         self.viewModel = viewModel
+        self.keyboardManager = keyboardManager
         self.categoryIndex = categoryIndex
         self.initialTitle = initialTitle
         super.init(nibName: nil, bundle: nil)
@@ -56,16 +65,23 @@ final class CustomizeCategoryViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    private func setupKeyboard() {
+        keyboardManager.setupKeyboardDismissal(for: view)
+        keyboardManager.registerTextField(textField)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         updateDoneButtonState()
+        setupNavigationItem()
     }
     
     private func setupUI() {
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
-        navigationItem.title = "Редактирование категории"
+        navigationItem.title = NSLocalizedString("reduction.category.view.title",
+                                                 comment: "Заголовок Редактирование категории")
         
         view.addSubview(textField)
         view.addSubview(doneButton)
@@ -83,6 +99,7 @@ final class CustomizeCategoryViewController: UIViewController {
         ])
         
         textField.becomeFirstResponder()
+        setupKeyboard()
     }
     
     @objc private func textFieldDidChange() {

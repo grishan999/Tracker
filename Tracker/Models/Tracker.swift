@@ -14,14 +14,24 @@ struct Tracker {
     let emoji: String
     let schedule: Set<Day>
     let category: TrackerCategory
+    var isPinned: Bool
     
-    init(id: UUID, title: String, color: UIColor, emoji: String, schedule: Set<Day>, category: TrackerCategory) {
+    init(
+        id: UUID,
+        title: String,
+        color: UIColor,
+        emoji: String,
+        schedule: Set<Day>,
+        category: TrackerCategory,
+        isPinned: Bool = false
+    ) {
         self.id = id
         self.title = title
         self.color = color
         self.emoji = emoji
         self.schedule = schedule
         self.category = category
+        self.isPinned = isPinned
     }
     
     init?(from coreData: TrackerCoreData) {
@@ -48,8 +58,10 @@ struct Tracker {
             title: categoryCoreData.title ?? "",
             trackers: []
         )
+        self.isPinned = coreData.isPinned
     }
 }
+
 
 extension UIColor {
     convenience init?(hex: String) {

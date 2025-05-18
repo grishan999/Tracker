@@ -21,6 +21,8 @@ final class CategoryCreationViewController: UIViewController {
     private let starImage = UIImageView()
     private let questionLabel = UILabel()
     
+    private let keyboardManager: KeyboardManageable
+    
     private lazy var placeholderView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -30,7 +32,8 @@ final class CategoryCreationViewController: UIViewController {
     
     private lazy var addButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Добавить категорию", for: .normal)
+        button.setTitle(NSLocalizedString("add.category",
+                                          comment: "Добавьте категорию кнопка"), for: .normal)
         button.titleLabel?.font = UIFont(name: "YS Display Medium", size: 16)
         button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
         button.backgroundColor = UIColor(named: "CustomBlack")
@@ -52,23 +55,26 @@ final class CategoryCreationViewController: UIViewController {
     }()
     
     init(
-            viewModel: CategoryCreationViewModel = CategoryCreationViewModel(),
-            onCategorySelected: ((TrackerCategory) -> Void)?
-        ) {
-           self.viewModel = viewModel
-           self.onCategorySelected = onCategorySelected
-           super.init(nibName: nil, bundle: nil)
-       }
-       
-       required init?(coder: NSCoder) {
-           fatalError("init(coder:) has not been implemented")
-       }
+        viewModel: CategoryCreationViewModel = CategoryCreationViewModel(),
+        onCategorySelected: ((TrackerCategory) -> Void)?,
+        keyboardManager: KeyboardManageable = KeyboardManager()
+    ) {
+        self.viewModel = viewModel
+        self.keyboardManager = keyboardManager
+        self.onCategorySelected = onCategorySelected
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
-        navigationItem.title = "Категория"
+        navigationItem.title = NSLocalizedString("category.tableview.button",
+                                                 comment: "Категория название вьюшки")
         
         setupUI()
         bindViewModel()
@@ -131,7 +137,8 @@ final class CategoryCreationViewController: UIViewController {
     }
     
     private func setupQuestionLabel() {
-        questionLabel.text = "Привычки и события можно \n объединить по смыслу"
+        questionLabel.text = NSLocalizedString("category.view.placeholder",
+                                               comment: "Заглушка экрана категорий")
         questionLabel.font = UIFont(name: "YS Display Medium", size: 12)
         questionLabel.numberOfLines = 2
         questionLabel.textAlignment = .center
@@ -243,16 +250,17 @@ extension CategoryCreationViewController {
         cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
         
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ -> UIMenu? in
-            let edit = UIAction(title: "Редактировать") { [weak self] _ in
+            let edit = UIAction(title: NSLocalizedString("customize.button",
+                                                         comment: "Кнопка Редактировать")) { [weak self] _ in
                 self?.showEditCategoryScreen(category: category, index: indexPath.row)
                 blurView.removeFromSuperview()
                 cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
             }
             
-            let delete = UIAction(title: "Удалить", attributes: .destructive) { [weak self] _ in
-                self?.viewModel.deleteCategory(at: indexPath.row)
-                blurView.removeFromSuperview()
-                cell.backgroundColor = UIColor(named: "CustomBackgroundDay")
+            let delete = UIAction(title: NSLocalizedString("delete.button",
+                                                           comment: "Кнопка Удалить"),
+                                  attributes: .destructive) { [weak self] _ in
+                self?.showDeleteAlert(for: category, at: indexPath.row, blurView: blurView)
             }
             
             return UIMenu(title: "", children: [edit, delete])
@@ -271,5 +279,42 @@ extension CategoryCreationViewController {
             initialTitle: category.title
         )
         navigationController?.pushViewController(editVC, animated: true)
+    }
+    
+    private func showDeleteAlert(for category: TrackerCategory, at index: Int, blurView: UIVisualEffectView) {
+        let alert = UIAlertController(
+            title: nil,
+            message: NSLocalizedString("category.delete.alert",
+                                      comment: "Алерт это категория точно не нужна?"),
+            preferredStyle: .actionSheet
+        )
+        
+        let deleteAction = UIAlertAction(title: NSLocalizedString("delete.button",
+                                                                  comment: "Кнопка Удалить"),
+                                         style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+            
+            self.viewModel.deleteCategory(at: index)
+            
+            blurView.removeFromSuperview()
+            
+            self.viewModel.loadCategories()
+        }
+        
+        let cancelAction = UIAlertAction(title: NSLocalizedString("cancel.alert.button",
+                                                                  comment: "Кнопка отмены редактирования категории"), style: .cancel) { _ in
+            blurView.removeFromSuperview()
+        }
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        if let popoverController = alert.popoverPresentationController {
+            popoverController.sourceView = self.view
+            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.maxY, width: 0, height: 0)
+            popoverController.permittedArrowDirections = []
+        }
+        
+        present(alert, animated: true, completion: nil)
     }
 }

@@ -14,7 +14,9 @@ final class TypeCreationViewController: UIViewController {
 
     private lazy var addHabitButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Привычка", for: .normal)
+        button.setTitle(NSLocalizedString("habit.button.title",
+                                          comment: "Кнопка Привычка на создании типа трекера"),
+                        for: .normal)
         button.titleLabel?.font = UIFont(name: "YS Display Medium", size: 16)
         button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
         button.backgroundColor = UIColor(named: "CustomBlack")
@@ -27,7 +29,9 @@ final class TypeCreationViewController: UIViewController {
 
     private lazy var addEventButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Нерегулярное событие", for: .normal)
+        button.setTitle(NSLocalizedString("event.button.title",
+                                           comment: "Кнопка Событие на создании типа трекера"),
+                         for: .normal)
         button.titleLabel?.font = UIFont(name: "YS Display Medium", size: 16)
         button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
         button.backgroundColor = UIColor(named: "CustomBlack")
@@ -40,12 +44,13 @@ final class TypeCreationViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor(named: "CustomWhite")
+        view.backgroundColor = UIColor(named: "ViewBackgroundColor")
         setupUI()
 
         navigationController?.navigationBar.tintColor = UIColor(
             named: "CustomBlack")
-        navigationItem.title = "Создание трекера"
+        navigationItem.title = NSLocalizedString("trackers.creation.type.title",
+                                                 comment: "Заголовок экрана создания типа трекера")
     }
 
     private func setupUI() {

@@ -23,6 +23,7 @@ final class HabitCreationViewController: UIViewController {
     private var schedule: Set<Day> = []
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
+    private let keyboardManager: KeyboardManageable
     
     private let emojies = [
         "🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓",
@@ -53,7 +54,8 @@ final class HabitCreationViewController: UIViewController {
     private lazy var habitNameTextField: UITextField = {
         let textField = UITextField()
         textField.backgroundColor = UIColor(named: "CustomBackgroundDay")
-        textField.placeholder = "Введите название привычки"
+        textField.placeholder = NSLocalizedString("habit.name.placeholder",
+                                                  comment: "Плейсхолдер названия привычки")
         textField.layer.cornerRadius = 16
         textField.clearButtonMode = .whileEditing
         textField.leftView = UIView(
@@ -66,7 +68,10 @@ final class HabitCreationViewController: UIViewController {
         return textField
     }()
     
-    private let tableViewCells: [String] = ["Категория", "Расписание"]
+    private let tableViewCells: [String] = [
+        NSLocalizedString("category.tableview.button", comment: "Кнопка выбора категории"),
+        NSLocalizedString("schedule.tableview.button", comment: "Кнопка выбора расписания")
+    ]
     
     private lazy var settingsTableView: UITableView = {
         let tableView = UITableView()
@@ -84,7 +89,9 @@ final class HabitCreationViewController: UIViewController {
     
     private lazy var cancelButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Отмена", for: .normal)
+        button.setTitle(NSLocalizedString("cancel.creation.tracker.button",
+                                          comment: "Кнопка отмены создания трекера"),
+                        for: .normal)
         button.setTitleColor(UIColor(named: "CancelButtonRed"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
@@ -98,8 +105,10 @@ final class HabitCreationViewController: UIViewController {
     
     private lazy var createButton: UIButton = {
         let button = UIButton(type: .custom)
-        button.setTitle("Создать", for: .normal)
-        button.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        button.setTitle(NSLocalizedString("create.creation.tracker.button",
+                                          comment: "Кнопка создания трекера Создать"),
+                        for: .normal)
+        button.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         button.layer.cornerRadius = 16
         button.layer.borderWidth = 1
@@ -124,7 +133,8 @@ final class HabitCreationViewController: UIViewController {
     
     private lazy var emojiHeaderLabel: UILabel = {
         let label = UILabel()
-        label.text = "Emoji"
+        label.text = NSLocalizedString("emoji.collection.title",
+                                       comment: "Заголовок Emoji")
         label.font = UIFont(name: "YS Display Bold", size: 19)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -136,7 +146,7 @@ final class HabitCreationViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
     }()
-
+    
     private lazy var colorCollectionView: HabitColorCollection = {
         let collectionView = HabitColorCollection(colors: colors)
         collectionView.selectionDelegate = self
@@ -146,7 +156,8 @@ final class HabitCreationViewController: UIViewController {
     
     private lazy var colorHeaderLabel: UILabel = {
         let label = UILabel()
-        label.text = "Цвет"
+        label.text = NSLocalizedString("color.collection.title",
+                                       comment: "Заголовок Цвет")
         label.font = UIFont(name: "YS Display Bold", size: 19)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -156,11 +167,16 @@ final class HabitCreationViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         
-        navigationController?.navigationBar.tintColor = UIColor(
-            named: "CustomBlack")
-        navigationItem.title = "Новая привычка"
+        navigationController?.navigationBar.tintColor = UIColor(named: "CustomBlack")
+        navigationItem.title = NSLocalizedString("new.habit.vc.title", comment: "Название вьюшки Новая привычка")
         
         setupUI()
+        setupKeyboard()
+    }
+    
+    private func setupKeyboard() {
+        keyboardManager.setupKeyboardDismissal(for: view)
+        keyboardManager.registerTextField(habitNameTextField)
     }
     
     private func setupUI() {
@@ -229,6 +245,17 @@ final class HabitCreationViewController: UIViewController {
         ])
     }
     
+    init(
+        keyboardManager: KeyboardManageable = KeyboardManager()
+    ) {
+        self.keyboardManager = keyboardManager
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     @objc private func textFieldDidChange() {
         updateCreateButtonState()
     }
@@ -253,7 +280,7 @@ final class HabitCreationViewController: UIViewController {
             category: category,
             emoji: Character(selectedEmoji),
             color: selectedColor,
-            schedule: schedule 
+            schedule: schedule
         )
         presentingViewController?.presentingViewController?.dismiss(animated: true)
     }
@@ -274,16 +301,19 @@ final class HabitCreationViewController: UIViewController {
         let isScheduleSelected = !schedule.isEmpty
         let isEmojiSelected = selectedEmoji != nil
         let isColorSelected = selectedColor != nil
+        let isCategorySelected = selectedCategory != nil
         
-        if isTextValid && isScheduleSelected && isEmojiSelected && isColorSelected {
-            createButton.backgroundColor = UIColor(named: "CustomBlack")
-            createButton.isEnabled = true
-        } else {
-            createButton.backgroundColor = UIColor(named: "CustomGray")
-            createButton.isEnabled = false
-        }
+        let isFormValid = isTextValid && isCategorySelected && isEmojiSelected && isColorSelected && isScheduleSelected
+        
+        createButton.backgroundColor = isFormValid ? .customBlack : .customGray
+        createButton.isEnabled = isFormValid
+        
+        createButton.setTitleColor(UIColor(named: "CustomWhite"), for: .normal)
+        createButton.setTitleColor(UIColor(named: "AlwaysWhiteColor"), for: .disabled)
     }
 }
+
+
 
 extension HabitCreationViewController: UITableViewDelegate,
                                        UITableViewDataSource
@@ -295,13 +325,13 @@ extension HabitCreationViewController: UITableViewDelegate,
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-           let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
-           cell.accessoryType = .disclosureIndicator
-           
-           cell.textLabel?.text = tableViewCells[indexPath.row]
-           if indexPath.row == 0 {
-               cell.detailTextLabel?.text = selectedCategory?.title 
-           }
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "cell")
+        cell.accessoryType = .disclosureIndicator
+        
+        cell.textLabel?.text = tableViewCells[indexPath.row]
+        if indexPath.row == 0 {
+            cell.detailTextLabel?.text = selectedCategory?.title
+        }
         
         
         cell.detailTextLabel?.textColor = UIColor(named: "CustomGray")
@@ -362,6 +392,7 @@ extension HabitCreationViewController: UITableViewDelegate,
         }
         cell.layer.masksToBounds = true
         tableView.separatorStyle = .none
+        tableView.separatorColor = UIColor(named: "CustomGray")
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -394,7 +425,8 @@ extension HabitCreationViewController: ScheduleViewControllerDelegate {
         guard !days.isEmpty else { return "" }
         
         if days.count == Day.allCases.count {
-            return "Каждый день"
+            return NSLocalizedString("everyday.schedule.alldays",
+                                     comment: "Выбор всех дней недели Каждый день")
         }
         
         let sortedDays = Day.allCases.filter { days.contains($0) }
